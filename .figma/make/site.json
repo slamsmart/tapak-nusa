@@ -1,0 +1,11 @@
+{
+  "title": "TAPAK NUSA",
+  "description": "A web application tailored to the product requirements and design guidelines, helping users complete its core tasks through a consistent, theme-aligned interface.",
+  "robots": {
+    "index": true
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

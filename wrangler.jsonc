@@ -1,0 +1,52 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tapak-nusa",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-06-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+  "rules": [
+    {
+      "type": "ESModule",
+      "globs": [
+        "cloudflare/**/*.js",
+        "middleware/**/*",
+        ".build/**/*.js",
+        "dynamodb-provider/**/*",
+        "server-functions/default/handler.mjs",
+        "server-functions/default/index.mjs",
+        "server-functions/default/open-next.config.mjs",
+        "server-functions/default/cache.cjs",
+        "server-functions/default/composable-cache.cjs",
+        "server-functions/default/patchedAsyncStorage.cjs",
+        "server-functions/default/node_modules/**"
+      ],
+      "fallthrough": false
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "tapak-nusa-db",
+      "database_id": "3eff715e-04bd-412b-8469-39612768d104",
+      "remote": true,
+    },
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MEDIA_BUCKET",
+      "bucket_name": "tapak-nusa-media",
+      "remote": true,
+    },
+  ],
+  "observability": {
+    "enabled": true,
+  },
+  "vars": {
+    "NEXT_PUBLIC_SITE_URL": "https://tapaknusa.web.id",
+    "FIGMA_PUBLIC_URL": "https://tapaknusa.web.id",
+  },
+}

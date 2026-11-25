@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "skills": {
+    "pwa-development": {
+      "source": "alinaqi/maggy",
+      "sourceType": "github",
+      "skillPath": "skills/pwa-development/SKILL.md",
+      "computedHash": "dfff1cfb9ced1ba365ac56c65d52eac9aed14783674e76374da3751d6ac8c251"
+    },
+    "mayar": {
+      "source": "mayarid/mayar-cli",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "841e4eaede43aa85100ee7b25120c17997870f9747ef05ee726e69751d017bcd"
+    }
+  }
+}

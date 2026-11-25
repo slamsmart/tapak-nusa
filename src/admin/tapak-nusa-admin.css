@@ -1,0 +1,210 @@
+.tapak-admin-logo {
+  color: #123e32;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  line-height: 0.8;
+  letter-spacing: -0.03em;
+}
+
+.tapak-admin-logo strong {
+  font-weight: 800;
+}
+
+.tapak-admin-mark {
+  width: 38px;
+  height: 41px;
+  border-radius: 50% 50% 50% 7px;
+  background: #df2029;
+  color: #fff;
+  display: inline-grid;
+  place-items: center;
+  transform: rotate(-45deg);
+  box-shadow: 0 6px 16px rgba(190, 25, 33, 0.19);
+}
+
+.tapak-admin-mark.is-compact {
+  width: 30px;
+  height: 32px;
+  border-radius: 50% 50% 50% 5px;
+}
+
+.tapak-admin-mark svg {
+  width: 27px;
+  height: 27px;
+  overflow: visible;
+  transform: rotate(45deg);
+}
+
+.tapak-admin-mark.is-compact svg {
+  width: 22px;
+  height: 22px;
+}
+
+.tapak-admin-mark path:not(.tapak-admin-mark__route) {
+  fill: currentColor;
+  opacity: 0.9;
+}
+
+.tapak-admin-mark__route {
+  fill: none;
+  stroke: #ffd36a;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-dasharray: 2.4 2.1;
+}
+
+.tapak-admin-mark circle {
+  fill: #ffd36a;
+}
+
+.tapak-admin-dashboard {
+  margin-bottom: var(--spacer-5);
+}
+
+.tapak-admin-dashboard__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacer-4);
+  margin-bottom: var(--spacer-5);
+}
+
+.tapak-admin-dashboard__copy {
+  max-width: 640px;
+}
+
+.tapak-admin-dashboard__eyebrow {
+  color: #c81d26;
+  font-size: var(--text-body-small-font-size);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.tapak-admin-dashboard h1 {
+  margin: var(--spacer-2) 0 var(--spacer-2-5);
+  color: var(--color-text);
+  font-size: clamp(24px, 2.4vw, 32px);
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+}
+
+.tapak-admin-dashboard__lede {
+  max-width: 560px;
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-body-large-font-size);
+  line-height: 1.6;
+}
+
+.tapak-admin-dashboard__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacer-2);
+}
+
+.tapak-admin-dashboard__actions a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 var(--spacer-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-medium);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--text-body-medium-font-size);
+  font-weight: 550;
+  text-decoration: none;
+}
+
+.tapak-admin-dashboard__actions a:first-child {
+  border-color: transparent;
+  background: #c81d26;
+  color: #fff;
+}
+
+.tapak-admin-dashboard__actions a:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-hover);
+}
+
+.tapak-admin-dashboard__actions a:first-child:hover {
+  border-color: transparent;
+  background: #a81a21;
+  color: #fff;
+}
+
+.tapak-admin-dashboard__stats {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacer-3);
+}
+
+.tapak-stat {
+  display: flex;
+  align-items: center;
+  gap: var(--spacer-3);
+  min-height: 76px;
+  padding: var(--spacer-3) var(--spacer-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-large);
+  background: var(--color-bg);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.tapak-stat:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-hover);
+}
+
+.tapak-stat__glyph {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-medium);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+}
+
+.tapak-stat__glyph svg {
+  width: 20px;
+  height: 20px;
+}
+
+.tapak-stat__meta {
+  min-width: 0;
+}
+
+.tapak-stat__count {
+  display: block;
+  color: var(--color-text);
+  font-size: var(--text-heading-xl-font-size);
+  font-weight: 650;
+  line-height: 1;
+}
+
+.tapak-stat__label {
+  display: block;
+  margin-top: var(--spacer-1-5);
+  color: var(--color-text-secondary);
+  font-size: var(--text-body-small-font-size);
+  font-weight: 550;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 1024px) {
+  .tapak-admin-dashboard__head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
