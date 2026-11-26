@@ -687,89 +687,163 @@ function NusaBrandPinLogo() {
 
 function SidebarPuraScene() {
   return (
-    <div className="relative w-full h-56 mt-auto pointer-events-none select-none overflow-hidden">
-      <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-[#F4FAF8] to-transparent z-10" />
+    <div className="relative w-full flex-1 min-h-[300px] lg:min-h-[360px] max-h-[480px] mt-auto pointer-events-none select-none overflow-hidden flex items-end">
+      <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#F9FCFA] to-transparent z-10" />
       <svg
-        viewBox="0 0 280 240"
+        viewBox="0 0 260 400"
         className="w-full h-full object-cover object-bottom"
         preserveAspectRatio="xMidYMax slice"
         aria-hidden
       >
         <defs>
           <linearGradient id="nusaSkyGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#E6F4F1" stopOpacity="0" />
-            <stop offset="48%" stopColor="#D3ECE6" stopOpacity="0.72" />
-            <stop offset="100%" stopColor="#A8DCD2" stopOpacity="0.95" />
+            <stop offset="0%" stopColor="#F9FCFA" stopOpacity="0" />
+            <stop offset="30%" stopColor="#E6F5F0" stopOpacity="0.55" />
+            <stop offset="65%" stopColor="#CEEBE3" stopOpacity="0.85" />
+            <stop offset="100%" stopColor="#A3DDD2" stopOpacity="0.95" />
           </linearGradient>
           <linearGradient id="nusaLakeGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#B8E4DC" />
-            <stop offset="100%" stopColor="#7DC3B9" />
+            <stop offset="0%" stopColor="#AEE2D7" />
+            <stop offset="100%" stopColor="#68B8A9" />
+          </linearGradient>
+          <linearGradient id="nusaMeruGrad1" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#2F4440" />
+            <stop offset="100%" stopColor="#1C2D2A" />
+          </linearGradient>
+          <linearGradient id="nusaMeruGrad2" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#3C5651" />
+            <stop offset="100%" stopColor="#243834" />
           </linearGradient>
         </defs>
 
-        <rect width="280" height="240" fill="url(#nusaSkyGrad)" />
+        {/* Sky Background */}
+        <rect width="260" height="400" fill="url(#nusaSkyGrad)" />
 
-        {/* Distant misty mountains */}
+        {/* Distant majestic misty mountains (High volcanic peak) */}
         <path
-          d="M-10 132 Q42 96 98 122 T212 108 T290 126 L290 160 L-10 160 Z"
-          fill="#BCE2DA"
+          d="M-20 220 Q40 85 110 145 T240 165 L280 185 L280 260 L-20 260 Z"
+          fill="#C2E6DE"
+          opacity="0.6"
+        />
+        <path
+          d="M-20 240 Q75 130 160 185 T280 190 L280 270 L-20 270 Z"
+          fill="#A3DCD0"
+          opacity="0.68"
+        />
+        <path
+          d="M-20 255 Q35 185 105 210 Q180 235 280 205 L280 280 L-20 280 Z"
+          fill="#7FCAB8"
           opacity="0.75"
         />
+
+        {/* Calm Lake Beratan */}
+        <rect x="0" y="238" width="260" height="162" fill="url(#nusaLakeGrad)" />
+
+        {/* Subtle Water Shimmers */}
+        <g stroke="#EBF8F5" strokeWidth="1.5" strokeLinecap="round" opacity="0.65">
+          <line x1="20" y1="265" x2="85" y2="265" />
+          <line x1="125" y1="272" x2="210" y2="272" opacity="0.5" />
+          <line x1="45" y1="288" x2="135" y2="288" strokeWidth="1.8" />
+          <line x1="155" y1="298" x2="235" y2="298" opacity="0.5" />
+          <line x1="25" y1="312" x2="110" y2="312" strokeWidth="1.4" />
+        </g>
+
+        {/* Water reflection of the temple roofs */}
+        <path d="M60 270 L86 330 L112 270 Z" fill="#2E554D" opacity="0.22" />
+
+        {/* Main Pura Ulun Danu Meru Tower (11 Tiers, vertical Balinese architecture) */}
+        <g id="main-pura-meru">
+          {/* Stone islet base & plinth */}
+          <ellipse cx="86" cy="270" rx="56" ry="12" fill="#416C61" opacity="0.45" />
+          <path d="M34 265 Q86 256 138 265 L132 274 L38 274 Z" fill="#3B6358" />
+          <rect x="52" y="254" width="68" height="11" rx="1.5" fill="#88A39B" />
+          <rect x="58" y="245" width="56" height="10" rx="1" fill="#ABC0BA" />
+          <rect x="64" y="237" width="44" height="9" rx="1" fill="#DCE7E4" />
+
+          {/* Wooden inner pavilion chamber */}
+          <rect x="71" y="212" width="30" height="26" rx="1" fill="#784F32" />
+          <rect x="80" y="220" width="12" height="18" fill="#301E13" />
+          <line x1="73" y1="212" x2="73" y2="237" stroke="#DDA86C" strokeWidth="2.5" />
+          <line x1="99" y1="212" x2="99" y2="237" stroke="#DDA86C" strokeWidth="2.5" />
+
+          {/* 11 Tiers of Meru Thatched Roofs */}
+          {/* Tier 1 */}
+          <path d="M49 214 Q86 200 123 214 L116 205 Q86 208 56 205 Z" fill="url(#nusaMeruGrad1)" />
+          <rect x="75" y="196" width="22" height="9" fill="#784F32" />
+
+          {/* Tier 2 */}
+          <path d="M53 199 Q86 186 119 199 L113 191 Q86 193 59 191 Z" fill="url(#nusaMeruGrad2)" />
+          <rect x="76" y="183" width="20" height="8" fill="#784F32" />
+
+          {/* Tier 3 */}
+          <path d="M57 185 Q86 173 115 185 L110 177 Q86 180 62 177 Z" fill="url(#nusaMeruGrad1)" />
+          <rect x="77" y="170" width="18" height="7" fill="#784F32" />
+
+          {/* Tier 4 */}
+          <path d="M60 172 Q86 161 112 172 L107 165 Q86 167 65 165 Z" fill="url(#nusaMeruGrad2)" />
+          <rect x="78" y="158" width="16" height="7" fill="#784F32" />
+
+          {/* Tier 5 */}
+          <path d="M63 160 Q86 150 109 160 L105 153 Q86 155 67 153 Z" fill="url(#nusaMeruGrad1)" />
+          <rect x="79" y="147" width="14" height="6" fill="#784F32" />
+
+          {/* Tier 6 */}
+          <path d="M66 149 Q86 140 106 149 L102 143 Q86 145 70 143 Z" fill="url(#nusaMeruGrad2)" />
+          <rect x="80" y="137" width="12" height="6" fill="#784F32" />
+
+          {/* Tier 7 */}
+          <path d="M69 139 Q86 131 103 139 L100 133 Q86 135 72 133 Z" fill="url(#nusaMeruGrad1)" />
+          <rect x="81" y="127" width="10" height="6" fill="#784F32" />
+
+          {/* Tier 8 */}
+          <path d="M72 129 Q86 122 100 129 L97 124 Q86 125 75 124 Z" fill="url(#nusaMeruGrad2)" />
+          <rect x="82" y="119" width="8" height="5" fill="#784F32" />
+
+          {/* Tier 9 */}
+          <path d="M74.5 120 Q86 114 97.5 120 L95 115 Q86 116 77 115 Z" fill="url(#nusaMeruGrad1)" />
+          <rect x="83" y="110" width="6" height="5" fill="#784F32" />
+
+          {/* Tier 10 */}
+          <path d="M77 111 Q86 106 95 111 L93 106 Q86 107 79 106 Z" fill="url(#nusaMeruGrad2)" />
+
+          {/* Tier 11 (Top Peak Cap) */}
+          <path d="M79 102 Q86 97 93 102 L86 91 Z" fill="url(#nusaMeruGrad1)" />
+
+          {/* Needle Spire & Golden Finial */}
+          <line x1="86" y1="72" x2="86" y2="92" stroke="#233935" strokeWidth="2" strokeLinecap="round" />
+          <circle cx="86" cy="85" r="2.5" fill="#F59E0B" />
+          <line x1="86" y1="62" x2="86" y2="72" stroke="#233935" strokeWidth="1.2" strokeLinecap="round" />
+        </g>
+
+        {/* Companion Small 3-Tier Shrine on the Left */}
+        <g id="companion-shrine">
+          <rect x="18" y="258" width="22" height="12" rx="1" fill="#88A39B" />
+          <path d="M12 258 Q29 250 46 258 L42 251 Q29 253 16 251 Z" fill="#2B3F3B" />
+          <path d="M15 251 Q29 244 43 251 L40 245 Q29 247 18 245 Z" fill="#364E4A" />
+          <path d="M18 245 Q29 238 40 245 L29 233 Z" fill="#2B3F3B" />
+          <line x1="29" y1="225" x2="29" y2="233" stroke="#2B3F3B" strokeWidth="1.5" strokeLinecap="round" />
+        </g>
+
+        {/* Foreground Lush Rolling Hills & Tropical Foliage */}
         <path
-          d="M-10 144 Q68 118 136 136 T290 128 L290 170 L-10 170 Z"
-          fill="#9FD2C8"
-          opacity="0.7"
+          d="M-20 400 L-20 295 Q45 280 110 315 Q185 345 280 305 L280 400 Z"
+          fill="#388D76"
+        />
+        <path
+          d="M-20 400 L-20 318 Q55 300 130 338 Q205 360 280 328 L280 400 Z"
+          fill="#226E58"
+        />
+        <path
+          d="M-20 400 L-20 345 Q45 330 100 365 Q170 388 280 355 L280 400 Z"
+          fill="#0D4836"
         />
 
-        {/* Calm lake */}
-        <rect x="0" y="142" width="280" height="98" fill="url(#nusaLakeGrad)" />
-
-        {/* Soft water shimmer */}
-        <g stroke="#E6F7F4" strokeWidth="1.3" strokeLinecap="round" opacity="0.65">
-          <line x1="26" y1="162" x2="78" y2="162" />
-          <line x1="145" y1="168" x2="215" y2="168" />
-          <line x1="64" y1="180" x2="132" y2="180" />
-          <line x1="168" y1="186" x2="236" y2="186" />
-        </g>
-
-        {/* Pura Ulun Danu main multi-tiered Meru shrine */}
-        <g transform="translate(68, 44)">
-          {/* Stone base islet */}
-          <ellipse cx="44" cy="118" rx="46" ry="9" fill="#5D8F82" opacity="0.45" />
-          <path d="M6 114 Q44 106 82 114 L78 121 L10 121 Z" fill="#4A7A6E" />
-          <rect x="24" y="99" width="40" height="15" rx="1" fill="#374B4A" />
-          <rect x="38" y="103" width="12" height="11" fill="#233332" />
-
-          {/* 7 Meru tiers */}
-          <path d="M12 100 L44 89 L76 100 Z" fill="#2C3E40" />
-          <path d="M16 89 L44 79 L72 89 Z" fill="#374D4F" />
-          <path d="M20 79 L44 69 L68 79 Z" fill="#2C3E40" />
-          <path d="M23 69 L44 60 L65 69 Z" fill="#374D4F" />
-          <path d="M27 60 L44 51 L61 60 Z" fill="#2C3E40" />
-          <path d="M31 51 L44 43 L57 51 Z" fill="#374D4F" />
-          <path d="M35 43 L44 35 L53 43 Z" fill="#2C3E40" />
-          <line x1="44" y1="26" x2="44" y2="36" stroke="#2C3E40" strokeWidth="2" />
-
-          {/* Companion smaller 3-tier shrine */}
-          <g transform="translate(66, 48)">
-            <rect x="8" y="54" width="18" height="10" fill="#374B4A" />
-            <path d="M2 55 L17 48 L32 55 Z" fill="#2C3E40" />
-            <path d="M5 48 L17 41 L29 48 Z" fill="#374D4F" />
-            <path d="M9 41 L17 35 L25 41 Z" fill="#2C3E40" />
-            <line x1="17" y1="30" x2="17" y2="36" stroke="#2C3E40" strokeWidth="1.5" />
-          </g>
-        </g>
-
-        {/* Foreground lush emerald hills & tropical foliage */}
-        <path d="M-10 240 L-10 176 Q48 166 106 196 Q162 222 225 204 L290 192 L290 240 Z" fill="#4BA389" />
-        <path d="M-10 240 L-10 192 Q58 186 118 214 Q188 232 290 206 L290 240 Z" fill="#2A7B63" />
-        <path d="M-10 240 L-10 208 Q44 202 92 226 Q155 242 230 222 L290 218 L290 240 Z" fill="#145A45" />
-
-        {/* Decorative botanical leaves bottom-left */}
-        <g fill="#74C6A8" opacity="0.85">
-          <ellipse cx="18" cy="196" rx="14" ry="5" transform="rotate(-28 18 196)" />
-          <ellipse cx="32" cy="204" rx="16" ry="5.5" transform="rotate(-14 32 204)" />
-          <ellipse cx="14" cy="212" rx="15" ry="5" transform="rotate(-8 14 212)" />
+        {/* Tropical Leaves Frame at Bottom-Left */}
+        <g opacity="0.88">
+          <ellipse cx="14" cy="335" rx="22" ry="7.5" transform="rotate(-38 14 335)" fill="#54BA97" />
+          <ellipse cx="32" cy="350" rx="25" ry="8.5" transform="rotate(-20 32 350)" fill="#73CFA9" />
+          <ellipse cx="12" cy="368" rx="24" ry="8" transform="rotate(-10 12 368)" fill="#3C9E7D" />
+          <ellipse cx="38" cy="382" rx="26" ry="9" transform="rotate(15 38 382)" fill="#54BA97" />
         </g>
       </svg>
     </div>
