@@ -2,6 +2,7 @@
 
 import Script from 'next/script'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import QRCode from 'qrcode'
 
 import type {
   SiteAdventure as Adventure,
@@ -10,6 +11,7 @@ import type {
   SiteProvince as Province,
   SiteQuestion as QuizQuestion,
 } from '@/lib/content'
+import { premiumPlans, type PremiumPlan } from '@/lib/premium'
 import NusaDashboard, { type DashboardTab } from './nusa-dashboard'
 
 declare global {
@@ -52,46 +54,6 @@ const dailyTarget = 3
 // The provinces ordered first in the CMS keep the full-size numbered pin; the
 // rest render compact so the map stays readable.
 const heroPinCount = 5
-
-type PricingPlan = {
-  id: 'monthly' | 'quarterly' | 'lifetime'
-  name: string
-  price: string
-  per: string
-  note: string
-  badge: string | null
-}
-
-// Mayar membership checkout: 1 tier "Premium 3 Bulan", 1 tier "Premium Lifetime", 1 tier
-// "Premium" with a single 1-month period. The buyer picks tier and billing cycle on the page.
-const mayarCheckoutUrl = 'https://id-map.myr.id/m/Tapak-Nusa-Premium'
-
-const pricingPlans: PricingPlan[] = [
-  {
-    id: 'monthly',
-    name: 'Bulanan',
-    price: 'Rp19.000',
-    per: '/bulan',
-    note: 'Akses penuh selama satu bulan',
-    badge: null,
-  },
-  {
-    id: 'quarterly',
-    name: '3 Bulan',
-    price: 'Rp59.000',
-    per: '/3 bulan',
-    note: 'Akses penuh selama tiga bulan',
-    badge: null,
-  },
-  {
-    id: 'lifetime',
-    name: 'Lifetime',
-    price: 'Rp99.000',
-    per: '',
-    note: 'Sekali bayar, akses penuh selamanya',
-    badge: 'Paling hemat',
-  },
-]
 
 // Level thresholds double as the progress bar targets in the profile view.
 const levelLadder = [
@@ -628,7 +590,8 @@ function PublicDiscoveryLanding({
       action: 'Buka peta interaktif',
     },
   }[page]
-  const previewSlugs = page === 'culture' ? ['aceh', 'sumbar', 'bali'] : ['yogya', 'jakarta', 'aceh']
+  const previewSlugs =
+    page === 'culture' ? ['aceh', 'sumbar', 'bali'] : ['yogya', 'jakarta', 'aceh']
   const previewCards = previewSlugs.flatMap((slug) => {
     const adventure = content.adventures[slug]
     const card = adventure?.cards[0]
@@ -1289,7 +1252,7 @@ export default function TapakNusa({ content }: { content: SiteContent }) {
         <p className="home-credit">Foto: Reena Yadav & Anh Vy / Unsplash</p>
         <SupportBadge />
         {authModal}
-        {pricingOpen && <PricingModal onClose={() => setPricingOpen(false)} />}
+        {pricingOpen && <PricingModal user={demoUser} onClose={() => setPricingOpen(false)} />}
       </main>
     )
   }
@@ -1347,7 +1310,87 @@ export default function TapakNusa({ content }: { content: SiteContent }) {
   )
 }
 
-function PricingModal({ onClose }: { onClose: () => void }) {
+type QrisSession = {
+  plan: PremiumPlan
+  paymentId: string
+  qrString: string
+  amount: number
+  expiresAt: string | null
+}
+
+type QrisPhase = 'idle' | 'creating' | 'ready' | 'paid' | 'error'
+
+function PricingModal({ user, onClose }: { user: DemoUser | null; onClose: () => void }) {
+  const [phase, setPhase] = useState<QrisPhase>('idle')
+  const [session, setSession] = useState<QrisSession | null>(null)
+  const [qrSvg, setQrSvg] = useState('')
+  const [error, setError] = useState('')
+
+  async function startSession(plan: PremiumPlan) {
+    setPhase('creating')
+    setError('')
+    try {
+      const res = await fetch('/api/premium/qris', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planId: plan.id,
+          email: user?.email || 'tamu@tapaknusa.app',
+          name: user?.name || 'Tamu Tapak Nusa',
+        }),
+      })
+      const data = (await res.json().catch(() => null)) as {
+        paymentId?: string
+        amount?: number
+        qrString?: string
+        expiresAt?: string | null
+        error?: string
+      } | null
+      if (!res.ok || !data?.paymentId || !data.qrString) {
+        throw new Error(data?.error || 'Gagal membuat QRIS.')
+      }
+      const svg = await QRCode.toString(data.qrString, {
+        type: 'svg',
+        errorCorrectionLevel: 'M',
+        margin: 1,
+        width: 232,
+        color: { dark: '#0b3945', light: '#ffffff' },
+      })
+      setSession({
+        plan,
+        paymentId: data.paymentId,
+        qrString: data.qrString,
+        amount: data.amount ?? plan.amount,
+        expiresAt: data.expiresAt ?? null,
+      })
+      setQrSvg(svg)
+      setPhase('ready')
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Gagal membuat QRIS.')
+      setPhase('error')
+    }
+  }
+
+  useEffect(() => {
+    if (phase !== 'ready' || !session) return
+    let cancelled = false
+    const timer = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/premium/qris?paymentId=${session.paymentId}`)
+        const data = (await res.json().catch(() => null)) as { status?: string } | null
+        if (!cancelled && res.ok && data?.status === 'paid') setPhase('paid')
+      } catch {
+        // A missed poll is not a payment failure; the interval keeps running.
+      }
+    }, 5000)
+    return () => {
+      cancelled = true
+      clearInterval(timer)
+    }
+  }, [phase, session])
+
+  const expired = session?.expiresAt != null && new Date(session.expiresAt).getTime() < Date.now()
+
   return (
     <div className="modal-backdrop auth-backdrop" onMouseDown={onClose}>
       <div
@@ -1364,40 +1407,92 @@ function PricingModal({ onClose }: { onClose: () => void }) {
           <Logo />
           <span>Premium</span>
         </div>
-        <p className="eyebrow">Berlangganan Tapak Nusa</p>
-        <h2>Pilih paket langganan.</h2>
-        <p className="auth-intro">
-          Akses penuh materi budaya, kuis bergambar, dan koleksi di seluruh 38 provinsi.
-        </p>
-        <div className="pricing-grid">
-          {pricingPlans.map((plan) => (
-            <article
-              key={plan.id}
-              className={plan.badge ? 'pricing-plan featured' : 'pricing-plan'}
-            >
-              {plan.badge && <span className="pricing-badge">{plan.badge}</span>}
-              <h3>{plan.name}</h3>
-              <p className="pricing-price">
-                <b>{plan.price}</b>
-                {plan.per && <small>{plan.per}</small>}
+        {phase === 'idle' || phase === 'creating' || phase === 'error' ? (
+          <>
+            <p className="eyebrow">Berlangganan Tapak Nusa</p>
+            <h2>Pilih paket langganan.</h2>
+            <p className="auth-intro">
+              Akses penuh materi budaya, kuis bergambar, dan koleksi di seluruh 38 provinsi.
+            </p>
+            <div className="pricing-grid">
+              {premiumPlans.map((plan) => (
+                <article
+                  key={plan.id}
+                  className={plan.badge ? 'pricing-plan featured' : 'pricing-plan'}
+                >
+                  {plan.badge && <span className="pricing-badge">{plan.badge}</span>}
+                  <h3>{plan.name}</h3>
+                  <p className="pricing-price">
+                    <b>{plan.price}</b>
+                    {plan.per && <small>{plan.per}</small>}
+                  </p>
+                  <p className="pricing-note">{plan.note}</p>
+                  <button
+                    className="pricing-cta"
+                    onClick={() => startSession(plan)}
+                    disabled={phase === 'creating'}
+                  >
+                    Berlangganan
+                  </button>
+                </article>
+              ))}
+            </div>
+            {phase === 'creating' && <p className="pricing-footnote">Membuat kode QRIS…</p>}
+            {phase === 'error' && (
+              <p className="pricing-footnote is-error">
+                {error}{' '}
+                <button className="qris-retry" onClick={() => setPhase('idle')}>
+                  Coba lagi
+                </button>
               </p>
-              <p className="pricing-note">{plan.note}</p>
-              <a
-                className={mayarCheckoutUrl ? 'pricing-cta' : 'pricing-cta is-pending'}
-                href={mayarCheckoutUrl || undefined}
-                target="_blank"
-                rel="noreferrer"
-                aria-disabled={mayarCheckoutUrl ? undefined : true}
-              >
-                {mayarCheckoutUrl ? 'Berlangganan' : 'Segera dibuka'}
-              </a>
-            </article>
-          ))}
-        </div>
-        <p className="pricing-footnote">
-          Pembayaran aman diproses oleh Mayar. Langganan bisa berhenti kapan saja, kecuali paket
-          Lifetime yang berlaku selamanya.
-        </p>
+            )}
+            <p className="pricing-footnote">
+              Pembayaran aman diproses oleh Mayar. Langganan bisa berhenti kapan saja, kecuali paket
+              Lifetime yang berlaku selamanya.
+            </p>
+          </>
+        ) : (
+          session && (
+            <div className="qris-view">
+              <p className="eyebrow">Pembayaran {session.plan.name}</p>
+              <h2>Scan QRIS ini.</h2>
+              {phase === 'paid' ? (
+                <div className="qris-paid">
+                  <b>Pembayaran diterima.</b>
+                  <p>Terima kasih telah berlangganan Tapak Nusa Premium.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="qr-wrap">
+                    {qrSvg && (
+                      <img
+                        src={`data:image/svg+xml;utf8,${encodeURIComponent(qrSvg)}`}
+                        alt="Kode QRIS pembayaran"
+                      />
+                    )}
+                  </div>
+                  <p className="qris-amount">
+                    <b>Rp{session.amount.toLocaleString('id-ID')}</b>
+                  </p>
+                  <p className="qris-status">
+                    {expired ? 'QRIS kedaluwarsa.' : 'Menunggu pembayaran…'}
+                  </p>
+                  {expired && (
+                    <button
+                      className="pricing-cta qris-renew"
+                      onClick={() => startSession(session.plan)}
+                    >
+                      Perbarui QR
+                    </button>
+                  )}
+                  <button className="qris-back" onClick={() => setPhase('idle')}>
+                    Kembali ke paket
+                  </button>
+                </>
+              )}
+            </div>
+          )
+        )}
       </div>
     </div>
   )
@@ -1753,12 +1848,14 @@ function Leaderboard({
                   {row.name} {row.you && <em>Kamu</em>}
                 </b>
                 <small>
-                  {i < 3 ? 'Pendekar Budaya' : row.you ? `${level.title} Lv. ${level.level}` : 'Penjelajah'}
+                  {i < 3
+                    ? 'Pendekar Budaya'
+                    : row.you
+                      ? `${level.title} Lv. ${level.level}`
+                      : 'Penjelajah'}
                 </small>
               </p>
-              <strong>
-                {row.score.toLocaleString('id-ID')} XP
-              </strong>
+              <strong>{row.score.toLocaleString('id-ID')} XP</strong>
             </div>
           ))}
         </div>
@@ -1841,9 +1938,7 @@ function Profile({
           <div className="level-line">
             <p>
               <b>{level.nextTitle ? `Menuju ${level.nextTitle}` : 'Level tertinggi'}</b>
-              <small>
-                {level.nextAt === null ? `${xp} XP` : `${xp} / ${level.nextAt} XP`}
-              </small>
+              <small>{level.nextAt === null ? `${xp} XP` : `${xp} / ${level.nextAt} XP`}</small>
             </p>
             <div className="meter">
               <i style={{ width: `${Math.min(into * 100, 100)}%` }} />
