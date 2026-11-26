@@ -7,6 +7,8 @@ import { spawnSync } from 'node:child_process'
 // next.config need to see it before any module loads — otherwise every build
 // process spins up a remote preview session that the build does not need.
 process.env.NEXT_PHASE = 'phase-production-build'
+process.env.OPENNEXT_BUILD = 'true'
+process.env.NODE_ENV = 'production'
 // Exported so every process the build spawns (including `payload` CLI runs by
 // OpenNext's patch step) can detect the production build, since NEXT_PHASE only
 // reaches processes spawned directly by the wrapper.

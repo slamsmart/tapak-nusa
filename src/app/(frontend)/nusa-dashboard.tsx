@@ -871,13 +871,6 @@ export default function NusaDashboard({
   const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [mapRegion, setMapRegion] = useState<MapRegion>('all')
-  const [mapZoom, setMapZoom] = useState(1)
-  const [mapPan, setMapPan] = useState({ x: 0, y: 0 })
-  const [isPanning, setIsPanning] = useState(false)
-  const mapContainerRef = useRef<HTMLDivElement | null>(null)
-  const dragStartRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null)
-  const touchStartRef = useRef<{ x: number; y: number; dist?: number; panX: number; panY: number } | null>(null)
-  const hasMovedRef = useRef(false)
   const [showExtraLabels, setShowExtraLabels] = useState(false)
   const [timeframe, setTimeframe] = useState<'7days' | '30days'>('7days')
   const [selectedPointIdx, setSelectedPointIdx] = useState(4)
@@ -917,135 +910,8 @@ export default function NusaDashboard({
     }, 3000)
   }
 
-  // Non-passive wheel listener for smooth map zoom + auto-compact position
-  useEffect(() => {
-    const el = mapContainerRef.current
-    if (!el) return
-
-    const handleWheel = (e: WheelEvent) => {
-      e.preventDefault()
-      const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87
-      setMapZoom((prevZoom) => {
-        const nextZoom = Math.min(2.8, Math.max(0.85, +(prevZoom * zoomFactor).toFixed(2)))
-        // Auto compact position: when zooming out close to 1x or lower, smoothly recenter pan
-        if (nextZoom <= 1.05) {
-          setMapPan((prev) => ({
-            x: +(prev.x * 0.35).toFixed(1),
-            y: +(prev.y * 0.35).toFixed(1),
-          }))
-        }
-        return nextZoom
-      })
-    }
-
-    el.addEventListener('wheel', handleWheel, { passive: false })
-    return () => el.removeEventListener('wheel', handleWheel)
-  }, [])
-
   function handleSelectRegion(reg: MapRegion) {
     setMapRegion(reg)
-    if (reg === 'all') {
-      setMapZoom(1)
-      setMapPan({ x: 0, y: 0 })
-    } else if (reg === 'barat') {
-      setMapZoom(1.35)
-      setMapPan({ x: 180, y: 15 })
-    } else if (reg === 'tengah') {
-      setMapZoom(1.35)
-      setMapPan({ x: 0, y: -20 })
-    } else if (reg === 'timur') {
-      setMapZoom(1.45)
-      setMapPan({ x: -220, y: -10 })
-    }
-  }
-
-  function handleResetMap() {
-    setMapZoom(1)
-    setMapPan({ x: 0, y: 0 })
-    setMapRegion('all')
-  }
-
-  function handleMouseDown(e: React.MouseEvent) {
-    if (e.button !== 0) return
-    dragStartRef.current = {
-      x: e.clientX,
-      y: e.clientY,
-      panX: mapPan.x,
-      panY: mapPan.y,
-    }
-    hasMovedRef.current = false
-    setIsPanning(true)
-  }
-
-  function handleMouseMove(e: React.MouseEvent) {
-    if (!dragStartRef.current) return
-    const dx = e.clientX - dragStartRef.current.x
-    const dy = e.clientY - dragStartRef.current.y
-    if (Math.hypot(dx, dy) > 5) {
-      hasMovedRef.current = true
-    }
-    const maxPanX = Math.max(140, (mapZoom - 0.7) * 420)
-    const maxPanY = Math.max(90, (mapZoom - 0.7) * 240)
-    const nextX = Math.min(maxPanX, Math.max(-maxPanX, dragStartRef.current.panX + dx))
-    const nextY = Math.min(maxPanY, Math.max(-maxPanY, dragStartRef.current.panY + dy))
-    setMapPan({ x: nextX, y: nextY })
-  }
-
-  function handleMouseUp() {
-    dragStartRef.current = null
-    setIsPanning(false)
-  }
-
-  function handleTouchStart(e: React.TouchEvent) {
-    if (e.touches.length === 1) {
-      touchStartRef.current = {
-        x: e.touches[0].clientX,
-        y: e.touches[0].clientY,
-        panX: mapPan.x,
-        panY: mapPan.y,
-      }
-      hasMovedRef.current = false
-    } else if (e.touches.length === 2) {
-      const dist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY,
-      )
-      touchStartRef.current = {
-        x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
-        y: (e.touches[0].clientY + e.touches[1].clientY) / 2,
-        dist,
-        panX: mapPan.x,
-        panY: mapPan.y,
-      }
-    }
-  }
-
-  function handleTouchMove(e: React.TouchEvent) {
-    if (!touchStartRef.current) return
-    if (e.touches.length === 1 && !touchStartRef.current.dist) {
-      const dx = e.touches[0].clientX - touchStartRef.current.x
-      const dy = e.touches[0].clientY - touchStartRef.current.y
-      if (Math.hypot(dx, dy) > 5) {
-        hasMovedRef.current = true
-      }
-      const maxPanX = Math.max(140, (mapZoom - 0.7) * 420)
-      const maxPanY = Math.max(90, (mapZoom - 0.7) * 240)
-      setMapPan({
-        x: Math.min(maxPanX, Math.max(-maxPanX, touchStartRef.current.panX + dx)),
-        y: Math.min(maxPanY, Math.max(-maxPanY, touchStartRef.current.panY + dy)),
-      })
-    } else if (e.touches.length === 2 && touchStartRef.current.dist) {
-      const newDist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY,
-      )
-      const ratio = newDist / touchStartRef.current.dist
-      setMapZoom((z) => Math.min(2.8, Math.max(0.85, +(z * ratio).toFixed(2))))
-    }
-  }
-
-  function handleTouchEnd() {
-    touchStartRef.current = null
   }
 
   function switchTab(tab: DashboardTab) {
@@ -1597,392 +1463,93 @@ export default function NusaDashboard({
                 </div>
               </div>
 
-              {/* Interactive Map Canvas Container (Supports Scroll-Wheel Zoom & Left-Click Drag Pan) */}
-              <div
-                ref={mapContainerRef}
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-                onDoubleClick={handleResetMap}
-                className={`relative w-full h-[360px] sm:h-[420px] lg:h-[460px] xl:h-[500px] rounded-3xl overflow-hidden map-ocean border border-cyan-200/60 select-none ${
-                  isPanning ? 'cursor-grabbing' : 'cursor-grab'
-                }`}
-              >
-                <div
-                  className={`w-full h-full ${
-                    isPanning ? 'transition-none' : 'transition-transform duration-300 ease-out'
-                  } origin-center relative`}
-                  style={{
-                    transform: `translate3d(${mapPan.x}px, ${mapPan.y}px, 0) scale(${mapZoom})`,
-                  }}
-                >
-                  <svg
-                    viewBox="0 0 1000 420"
-                    className="w-full h-full"
-                    preserveAspectRatio="xMidYMid slice"
-                    aria-label="Peta Kepulauan Indonesia"
-                  >
-                    {/* Subtle Ocean Latitude/Longitude Grid */}
-                    <g stroke="#FFFFFF" strokeWidth="0.6" strokeDasharray="4 4" opacity="0.35">
-                      <line x1="0" y1="105" x2="1000" y2="105" />
-                      <line x1="0" y1="210" x2="1000" y2="210" />
-                      <line x1="0" y1="315" x2="1000" y2="315" />
-                      <line x1="250" y1="0" x2="250" y2="420" />
-                      <line x1="500" y1="0" x2="500" y2="420" />
-                      <line x1="750" y1="0" x2="750" y2="420" />
-                    </g>
+              {/* Interactive OpenStreetMap Container with all 38 province pins */}
+              <div className="map-card relative w-full h-[400px] sm:h-[460px] lg:h-[500px] xl:h-[520px] rounded-3xl overflow-hidden border border-emerald-100 shadow-inner">
+                {/* 1. OpenStreetMap Iframe Layer */}
+                <iframe
+                  className="osm-map"
+                  title="Peta OpenStreetMap Indonesia"
+                  src="https://www.openstreetmap.org/export/embed.html?bbox=94%2C-12%2C142%2C8&layer=mapnik"
+                  loading="lazy"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                />
 
-                    {/* WILAYAH BARAT: SUMATERA & JAWA */}
-                    <g
-                      style={{ opacity: mapRegion === 'all' || mapRegion === 'barat' ? 1 : 0.35 }}
-                      className="transition-opacity duration-300"
-                    >
-                      {/* Sumatera */}
-                      <path
-                        d="M68 78 L96 68 L134 94 L172 132 L212 174 L246 218 L266 254 L250 272 L218 252 L182 212 L142 172 L102 128 L74 96 Z"
-                        className={`island-land ${mapRegion === 'barat' ? 'island-highlight' : ''}`}
-                      />
-                      {/* Nias, Mentawai, Kepri, Bangka, Belitung */}
-                      <circle cx="96" cy="144" r="5" className="island-land" />
-                      <circle cx="132" cy="192" r="5.5" className="island-land" />
-                      <circle cx="238" cy="166" r="5.5" className="island-land" />
-                      <ellipse cx="272" cy="218" rx="11" ry="7" className="island-land" />
-                      <circle cx="296" cy="226" r="6" className="island-land" />
+                {/* 2. Soft Emerald/Teal Tint Wash Overlay */}
+                <div className="map-wash" aria-hidden />
 
-                      {/* Jawa & Madura */}
-                      <path
-                        d="M272 288 L318 282 L368 288 L418 294 L468 298 L482 308 L468 318 L412 316 L354 310 L294 304 L270 296 Z"
-                        className={`island-land ${mapRegion === 'barat' ? 'island-highlight' : ''}`}
-                      />
-                      <ellipse cx="462" cy="290" rx="12" ry="4" className="island-land" />
-                    </g>
-
-                    {/* WILAYAH TENGAH: KALIMANTAN, SULAWESI, BALI & NUSA TENGGARA */}
-                    <g
-                      style={{ opacity: mapRegion === 'all' || mapRegion === 'tengah' ? 1 : 0.35 }}
-                      className="transition-opacity duration-300"
-                    >
-                      {/* Kalimantan */}
-                      <path
-                        d="M342 152 L374 128 L418 112 L456 84 L486 96 L496 132 L488 166 L472 204 L444 228 L398 226 L358 216 L336 184 Z"
-                        className={`island-land ${mapRegion === 'tengah' ? 'island-highlight' : ''}`}
-                      />
-
-                      {/* Sulawesi */}
-                      <path
-                        d="M542 146 L576 132 L626 126 L634 138 L584 148 L572 168 L612 178 L606 192 L574 186 L588 224 L574 236 L558 206 L544 234 L530 228 L538 182 Z"
-                        className={`island-land ${mapRegion === 'tengah' ? 'island-highlight' : ''}`}
-                      />
-
-                      {/* Bali, Lombok, Sumbawa, Flores, Sumba, Timor */}
-                      <ellipse
-                        cx="498"
-                        cy="310"
-                        rx="9"
-                        ry="5.5"
-                        className={`island-land ${mapRegion === 'tengah' ? 'island-highlight' : ''}`}
-                      />
-                      <ellipse
-                        cx="522"
-                        cy="312"
-                        rx="8"
-                        ry="5"
-                        className={`island-land ${mapRegion === 'tengah' ? 'island-highlight' : ''}`}
-                      />
-                      <path
-                        d="M536 308 L572 307 L575 318 L538 319 Z"
-                        className={`island-land ${mapRegion === 'tengah' ? 'island-highlight' : ''}`}
-                      />
-                      <path
-                        d="M584 309 L638 307 L642 317 L586 319 Z"
-                        className={`island-land ${mapRegion === 'tengah' ? 'island-highlight' : ''}`}
-                      />
-                      <path
-                        d="M566 330 L594 333 L590 344 L564 340 Z"
-                        className={`island-land ${mapRegion === 'tengah' ? 'island-highlight' : ''}`}
-                      />
-                      <path
-                        d="M634 334 L680 320 L686 332 L638 346 Z"
-                        className={`island-land ${mapRegion === 'tengah' ? 'island-highlight' : ''}`}
-                      />
-                    </g>
-
-                    {/* WILAYAH TIMUR: MALUKU & PAPUA */}
-                    <g
-                      style={{ opacity: mapRegion === 'all' || mapRegion === 'timur' ? 1 : 0.35 }}
-                      className="transition-opacity duration-300"
-                    >
-                      {/* Halmahera, Buru, Seram */}
-                      <path
-                        d="M676 126 L696 118 L702 152 L682 162 Z"
-                        className={`island-land ${mapRegion === 'timur' ? 'island-highlight' : ''}`}
-                      />
-                      <ellipse cx="662" cy="198" rx="11" ry="6" className="island-land" />
-                      <path
-                        d="M682 192 L726 190 L730 203 L684 204 Z"
-                        className={`island-land ${mapRegion === 'timur' ? 'island-highlight' : ''}`}
-                      />
-                      {/* Papua */}
-                      <path
-                        d="M754 166 L792 154 L816 172 L838 168 L888 184 L952 198 L958 274 L912 272 L884 246 L842 234 L812 204 L762 190 Z"
-                        className={`island-land ${mapRegion === 'timur' ? 'island-highlight' : ''}`}
-                      />
-                    </g>
-                  </svg>
-
-                  {/* Interactive 38-Province Exploration Dots */}
-                  {provinces.map((prov, index) => {
-                    const reg = regionForProvince(prov.id)
-                    const dimmed = mapRegion !== 'all' && mapRegion !== reg
-                    const isChallenge = index % 6 === 3
-                    return (
-                      <button
-                        key={prov.id}
-                        type="button"
-                        onClick={() => {
-                          if (hasMovedRef.current) return
-                          openProvinceById(prov.id)
-                        }}
-                        title={`${prov.name} (${prov.island})`}
-                        aria-label={`Jelajahi ${prov.name}`}
-                        style={{
-                          left: `${prov.x}%`,
-                          top: `${prov.y}%`,
-                          opacity: dimmed ? 0.2 : 0.9,
-                        }}
-                        className={`absolute -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-white/80 shadow-xs transition-transform hover:scale-150 cursor-pointer z-10 ${
-                          cleared[prov.id] !== undefined
-                            ? 'bg-emerald-600'
-                            : isChallenge
-                              ? 'bg-amber-500'
-                              : 'bg-[#22A06B]'
-                        }`}
-                      />
-                    )
-                  })}
-
-                  {/* INTERACTIVE PROVINCE CALLOUT PINS (Matching Screenshot) */}
-
-                  {/* 1. ACEH (Featured Active Card Popup) */}
-                  {(mapRegion === 'all' || mapRegion === 'barat') && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (hasMovedRef.current) return
-                        openProvinceById('aceh')
-                      }}
-                      className="absolute left-[4%] sm:left-[6%] top-[6%] sm:top-[8%] z-20 cursor-pointer group text-left"
-                    >
-                      <div className="flex items-center gap-3 bg-white/95 backdrop-blur-md p-2 pr-4 rounded-2xl shadow-float border border-emerald-100 group-hover:scale-105 transition-transform">
-                        <img
-                          src={PROVINCE_HIGHLIGHTS.aceh.thumb}
-                          alt="Aceh"
-                          className="w-11 h-11 rounded-xl object-cover shrink-0"
-                        />
-                        <div>
-                          <div className="text-xs sm:text-sm font-extrabold text-slate-800">
-                            Aceh
-                          </div>
-                          <div className="text-[10px] sm:text-[11px] font-semibold text-emerald-700 flex items-center gap-1">
-                            <span>Pelajari budaya Aceh</span>
-                            <LucideSvg name="arrow-right" className="w-3 h-3" />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-1.5 ml-6 relative w-7 h-7 flex items-center justify-center text-orange-500 pin-pulse">
-                        <div className="w-7 h-7 rounded-full bg-orange-500 text-white flex items-center justify-center shadow-md relative z-10">
-                          <LucideSvg name="map-pin" className="w-4 h-4" filled />
-                        </div>
-                      </div>
-                    </button>
-                  )}
-
-                  {/* 2. SUMATERA BARAT */}
-                  {(mapRegion === 'all' || mapRegion === 'barat') && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (hasMovedRef.current) return
-                        openProvinceById('sumbar')
-                      }}
-                      className="absolute left-[13%] sm:left-[16%] top-[41%] sm:top-[42%] z-20 cursor-pointer group"
-                    >
-                      <div className="flex items-center gap-2 bg-white/95 backdrop-blur-md p-1.5 pr-3.5 rounded-full shadow-md border border-slate-100 group-hover:scale-105 group-hover:border-emerald-300 transition-all">
-                        <img
-                          src={PROVINCE_HIGHLIGHTS.sumbar.thumb}
-                          alt="Sumatera Barat"
-                          className="w-8 h-8 rounded-full object-cover shrink-0"
-                        />
-                        <span className="text-[11px] font-bold text-slate-800 whitespace-nowrap">
-                          Sumatera Barat
-                        </span>
-                      </div>
-                    </button>
-                  )}
-
-                  {/* 3. DKI JAKARTA */}
-                  {(mapRegion === 'all' || mapRegion === 'barat') && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (hasMovedRef.current) return
-                        openProvinceById('jakarta')
-                      }}
-                      className="absolute left-[26%] sm:left-[29%] top-[62%] sm:top-[63%] z-20 cursor-pointer group"
-                    >
-                      <div className="flex items-center gap-2 bg-white/95 backdrop-blur-md p-1.5 pr-3.5 rounded-full shadow-md border border-slate-100 group-hover:scale-105 group-hover:border-emerald-300 transition-all">
-                        <img
-                          src={PROVINCE_HIGHLIGHTS.jakarta.thumb}
-                          alt="DKI Jakarta"
-                          className="w-8 h-8 rounded-full object-cover shrink-0"
-                        />
-                        <span className="text-[11px] font-bold text-slate-800 whitespace-nowrap">
-                          DKI Jakarta
-                        </span>
-                      </div>
-                    </button>
-                  )}
-
-                  {/* 4. YOGYAKARTA (shown when extra labels or Barat filter) */}
-                  {(showExtraLabels || mapRegion === 'barat') && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (hasMovedRef.current) return
-                        openProvinceById('yogya')
-                      }}
-                      className="hidden sm:flex absolute left-[38%] top-[74%] z-20 cursor-pointer group"
-                    >
-                      <div className="flex items-center gap-2 bg-white/95 backdrop-blur-md p-1.5 pr-3 rounded-full shadow-md border border-slate-100 group-hover:scale-105 transition-all">
-                        <img
-                          src={PROVINCE_HIGHLIGHTS.yogya.thumb}
-                          alt="DI Yogyakarta"
-                          className="w-7 h-7 rounded-full object-cover shrink-0"
-                        />
-                        <span className="text-[11px] font-bold text-slate-800 whitespace-nowrap">
-                          DI Yogyakarta
-                        </span>
-                      </div>
-                    </button>
-                  )}
-
-                  {/* 5. BALI */}
-                  {(mapRegion === 'all' || mapRegion === 'tengah') && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (hasMovedRef.current) return
-                        openProvinceById('bali')
-                      }}
-                      className="absolute left-[46%] sm:left-[48%] top-[68%] sm:top-[70%] z-20 cursor-pointer group"
-                    >
-                      <div className="flex items-center gap-2 bg-white/95 backdrop-blur-md p-1.5 pr-3.5 rounded-full shadow-md border border-slate-100 group-hover:scale-105 group-hover:border-emerald-300 transition-all">
-                        <img
-                          src={PROVINCE_HIGHLIGHTS.bali.thumb}
-                          alt="Bali"
-                          className="w-8 h-8 rounded-full object-cover shrink-0"
-                        />
-                        <span className="text-[11px] font-bold text-slate-800 whitespace-nowrap">
-                          Bali
-                        </span>
-                      </div>
-                    </button>
-                  )}
-
-                  {/* 6. SULAWESI SELATAN (shown on Tengah filter or extra labels) */}
-                  {(showExtraLabels || mapRegion === 'tengah') && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (hasMovedRef.current) return
-                        openProvinceById('sulsel')
-                      }}
-                      className="absolute left-[56%] top-[44%] z-20 cursor-pointer group"
-                    >
-                      <div className="flex items-center gap-2 bg-white/95 backdrop-blur-md p-1.5 pr-3 rounded-full shadow-md border border-slate-100 group-hover:scale-105 transition-all">
-                        <img
-                          src={PROVINCE_HIGHLIGHTS.sulsel.thumb}
-                          alt="Sulawesi Selatan"
-                          className="w-7 h-7 rounded-full object-cover shrink-0"
-                        />
-                        <span className="text-[11px] font-bold text-slate-800 whitespace-nowrap">
-                          Sulawesi Selatan
-                        </span>
-                      </div>
-                    </button>
-                  )}
-
-                  {/* 7. PAPUA (shown on Timur filter or extra labels) */}
-                  {(showExtraLabels || mapRegion === 'timur') && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (hasMovedRef.current) return
-                        openProvinceById('papua')
-                      }}
-                      className="absolute left-[79%] top-[45%] z-20 cursor-pointer group"
-                    >
-                      <div className="flex items-center gap-2 bg-white/95 backdrop-blur-md p-1.5 pr-3 rounded-full shadow-md border border-slate-100 group-hover:scale-105 transition-all">
-                        <img
-                          src={PROVINCE_HIGHLIGHTS.papua.thumb}
-                          alt="Papua"
-                          className="w-7 h-7 rounded-full object-cover shrink-0"
-                        />
-                        <span className="text-[11px] font-bold text-slate-800 whitespace-nowrap">
-                          Papua
-                        </span>
-                      </div>
-                    </button>
-                  )}
+                {/* 3. Floating Title Card */}
+                <div className="map-title hidden sm:grid">
+                  <small>PETA EKSPLORASI</small>
+                  <strong>Indonesia</strong>
+                  <span>Geser dan perbesar peta untuk menjelajah</span>
                 </div>
 
-                {/* Map Controls: Zoom (+/-) Top Right */}
-                <div className="absolute top-3.5 right-3.5 flex flex-col bg-white rounded-xl shadow-md border border-slate-100 overflow-hidden z-30">
-                  <button
-                    type="button"
-                    onClick={() => setMapZoom((z) => Math.min(2.8, +(z + 0.2).toFixed(2)))}
-                    className="w-9 h-9 flex items-center justify-center text-slate-700 hover:bg-slate-50 font-bold border-b border-slate-100 transition cursor-pointer"
-                    title="Perbesar (Zoom In)"
-                    aria-label="Perbesar peta"
-                  >
-                    <LucideSvg name="plus" className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setMapZoom((z) => {
-                        const next = Math.max(0.85, +(z - 0.2).toFixed(2))
-                        if (next <= 1.05) {
-                          setMapPan((p) => ({
-                            x: +(p.x * 0.4).toFixed(1),
-                            y: +(p.y * 0.4).toFixed(1),
-                          }))
-                        }
-                        return next
-                      })
-                    }
-                    className="w-9 h-9 flex items-center justify-center text-slate-700 hover:bg-slate-50 font-bold transition cursor-pointer"
-                    title="Perkecil (Zoom Out)"
-                    aria-label="Perkecil peta"
-                  >
-                    <LucideSvg name="minus" className="w-4 h-4" />
-                  </button>
+                {/* 4. All 38 Province Pins on OpenStreetMap Coordinates */}
+                {provinces.map((p, i) => {
+                  const reg = regionForProvince(p.id)
+                  const isDimmed = mapRegion !== 'all' && mapRegion !== reg
+                  const isDone = cleared[p.id] !== undefined
+                  const isCore = i < 5
+                  const isDense = !isCore && !showExtraLabels
+                  const isFlip = p.x > 75
+
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      data-province={p.id}
+                      onClick={() => openProvinceById(p.id)}
+                      className={`pin ${isDone ? 'done' : 'open'} ${isDense ? 'dense' : ''} ${isFlip ? 'flip' : ''} transition-all duration-300 cursor-pointer`}
+                      style={
+                        {
+                          left: `${p.x}%`,
+                          top: `${p.y}%`,
+                          '--pin': p.tone || '#0D5C46',
+                          opacity: isDimmed ? 0.22 : 1,
+                          transform: `translate(-50%, -50%) ${isDimmed ? 'scale(0.85)' : 'scale(1)'}`,
+                          pointerEvents: isDimmed ? 'none' : 'auto',
+                        } as React.CSSProperties
+                      }
+                      aria-label={`${p.name}, ${isDone ? 'Selesai' : 'Terbuka'}`}
+                      title={`${p.name} (${p.island})`}
+                    >
+                      <span>
+                        {isDone ? (
+                          <LucideSvg name="check" className="w-3.5 h-3.5" />
+                        ) : isCore ? (
+                          <span className="text-[11px] font-extrabold">{i + 1}</span>
+                        ) : null}
+                      </span>
+                      <b>{p.name}</b>
+                    </button>
+                  )
+                })}
+
+                {/* 5. Map Legend (Selesai, Terbuka, 38 provinsi aktif) */}
+                <div className="map-legend">
+                  <span>
+                    <i className="lg done" />
+                    Selesai
+                  </span>
+                  <span>
+                    <i className="lg open" />
+                    Terbuka
+                  </span>
+                  <span>
+                    <i className="lg all" />
+                    38 provinsi aktif
+                  </span>
                 </div>
 
-                {/* Map Control: Reset Compass Bottom Left */}
-                <button
-                  type="button"
-                  onClick={handleResetMap}
-                  title="Reset Posisi & Zoom Peta"
-                  aria-label="Reset posisi peta"
-                  className="absolute bottom-3.5 left-3.5 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-slate-600 shadow-md flex items-center justify-center z-30 transition cursor-pointer"
+                {/* 6. Attribution */}
+                <a
+                  className="map-attribution"
+                  href="https://www.openstreetmap.org/copyright"
+                  target="_blank"
+                  rel="noreferrer"
                 >
-                  <LucideSvg name="navigation" className="w-4 h-4" />
-                </button>
+                  © OpenStreetMap contributors
+                </a>
               </div>
             </section>
 

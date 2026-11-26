@@ -13,7 +13,11 @@ const dirname = path.dirname(__filename)
 // a live binding session, and each remote preview handshake is a separate
 // workerd process. The build scripts set NEXT_PHASE up front so both the parent
 // build and its page-data workers skip this (Next itself only sets it later).
-if (process.env.NEXT_PHASE !== 'phase-production-build') {
+if (
+  process.env.NEXT_PHASE !== 'phase-production-build' &&
+  process.env.NODE_ENV !== 'production' &&
+  process.env.OPENNEXT_BUILD !== 'true'
+) {
   initOpenNextCloudflareForDev()
 }
 
