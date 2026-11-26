@@ -55,14 +55,36 @@ export type SiteContent = {
 type PopulatedProvince = number | ProvinceDoc | null | undefined
 type PopulatedMedia = number | Media | null | undefined
 
+/**
+ * The deployed Worker and `next dev` both reach D1 over Cloudflare's remote
+ * binding, whose HTTPS connection occasionally resets mid-query (ECONNRESET).
+ * A handful of retries with short backoff absorbs the blip instead of surfacing
+ * a 500 to the visitor.
+ */
+const TRANSIENT_PATTERN = /ECONNRESET|ECONNREFUSED|ETIMEDOUT|socket hang up|fetch failed|terminated|aborted/i
+
+async function findWithRetry<T>(operation: () => Promise<T>): Promise<T> {
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      return await operation()
+    } catch (error) {
+      const causeChain = error instanceof Error ? String(error.cause ?? error.message) : String(error)
+      const transient = TRANSIENT_PATTERN.test(causeChain)
+      if (attempt >= 3 || !transient) throw error
+      // Promise.withResolvers needs lib es2024; this repo targets a lower lib.
+      await new Promise<void>((resolve) => setTimeout(resolve, attempt * 750))
+    }
+  }
+}
+
 export async function loadSiteContent(): Promise<SiteContent> {
   const payload = await getPayloadClient()
 
   // Ordered globally; grouping below preserves each province's own order.
   const [provinceResult, cardResult, questionResult] = await Promise.all([
-    payload.find({ collection: 'provinces', sort: 'order', depth: 0, pagination: false }),
-    payload.find({ collection: 'culture-cards', sort: 'order', depth: 1, pagination: false }),
-    payload.find({ collection: 'quiz-questions', sort: 'order', depth: 1, pagination: false }),
+    findWithRetry(() => payload.find({ collection: 'provinces', sort: 'order', depth: 0, pagination: false })),
+    findWithRetry(() => payload.find({ collection: 'culture-cards', sort: 'order', depth: 1, pagination: false })),
+    findWithRetry(() => payload.find({ collection: 'quiz-questions', sort: 'order', depth: 1, pagination: false })),
   ])
 
   const provinces: SiteProvince[] = provinceResult.docs.map((doc) => ({
