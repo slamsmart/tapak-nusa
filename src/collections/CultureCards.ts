@@ -1,4 +1,6 @@
-import type { CollectionConfig } from 'payload'
+import type { Access, CollectionConfig } from 'payload'
+
+const isAdmin: Access = ({ req }) => req.user?.collection === 'admins'
 
 /**
  * One editorial culture card for a province: the unit shown in the collection
@@ -11,7 +13,10 @@ export const CultureCards: CollectionConfig = {
     plural: 'Culture Cards',
   },
   access: {
+    create: isAdmin,
+    delete: isAdmin,
     read: () => true,
+    update: isAdmin,
   },
   admin: {
     group: 'Tapak Nusa',

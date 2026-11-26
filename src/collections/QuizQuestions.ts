@@ -1,4 +1,13 @@
-import type { CollectionConfig } from 'payload'
+import type { Access, CollectionConfig, FieldAccess } from 'payload'
+
+const isAdmin: Access = ({ req }) => req.user?.collection === 'admins'
+
+/**
+ * The correct option index and its explanation must never reach anonymous
+ * clients: a public `read` would let anyone fetch the answers and grade the
+ * quiz themselves. Grading happens server-side.
+ */
+const answerReadAccess: FieldAccess = ({ req }) => req.user?.collection === 'admins'
 
 /**
  * A multiple-choice quiz question attached to a province adventure.
@@ -10,7 +19,10 @@ export const QuizQuestions: CollectionConfig = {
     plural: 'Quiz Questions',
   },
   access: {
+    create: isAdmin,
+    delete: isAdmin,
     read: () => true,
+    update: isAdmin,
   },
   admin: {
     group: 'Tapak Nusa',
@@ -45,12 +57,14 @@ export const QuizQuestions: CollectionConfig = {
       type: 'number',
       required: true,
       min: 0,
+      access: { read: answerReadAccess },
       admin: { description: 'Zero-based index of the correct option.' },
     },
     {
       name: 'explanation',
       type: 'textarea',
       required: true,
+      access: { read: answerReadAccess },
       admin: { description: 'Shown after answering, explaining why the answer is correct.' },
     },
     {

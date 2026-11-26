@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=El+Messiri:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=El+Messiri:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import 'tailwindcss';
 
 :root {
@@ -23,8 +23,8 @@ body {
   font-family: 'El Messiri', Arial, sans-serif;
   font-size: 15px;
 }
-button,
-input {
+button:where(:not(.nusa-dashboard *)),
+input:where(:not(.nusa-dashboard *)) {
   font: inherit;
 }
 button {
@@ -574,7 +574,7 @@ input:focus-visible {
 }
 .app-shell {
   min-height: 100vh;
-  background: #ffffff;
+  background: #f6f7f2;
 }
 .topbar {
   height: 82px;
@@ -643,8 +643,8 @@ input:focus-visible {
   font-size: 13px;
 }
 .stats small {
-  font-size: 10px;
-  color: #999;
+  font-size: 11px;
+  color: #6b7873;
 }
 .avatar,
 .big-avatar {
@@ -732,8 +732,8 @@ input:focus-visible {
   border-radius: 5px;
 }
 .mission-card p {
-  font-size: 9px;
-  color: #8f8877;
+  font-size: 11px;
+  color: #6d6759;
   margin: 8px 0 0;
   display: flex;
   justify-content: space-between;
@@ -743,6 +743,7 @@ input:focus-visible {
 }
 .sidebar-note {
   margin-top: auto;
+  padding-top: 20px;
   display: flex;
   align-items: flex-start;
   gap: 9px;
@@ -823,8 +824,8 @@ input:focus-visible {
   font-size: 18px;
 }
 .progress-orbit small {
-  font-size: 8px;
-  color: #999;
+  font-size: 11px;
+  color: #6b7873;
 }
 .map-card {
   position: relative;
@@ -870,7 +871,7 @@ input:focus-visible {
 }
 .map-title small {
   color: #7d8b85;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.16em;
 }
@@ -883,8 +884,8 @@ input:focus-visible {
   color: #254f44;
 }
 .map-title span {
-  color: #78847e;
-  font-size: 9px;
+  color: #5f6b65;
+  font-size: 11px;
 }
 .pin {
   position: absolute;
@@ -919,16 +920,15 @@ input:focus-visible {
   border: 1px solid rgba(63, 91, 80, 0.13);
   border-radius: 7px;
   font-size: 10px;
+  color: #26443a;
   box-shadow: 0 3px 10px rgba(48, 87, 71, 0.18);
+}
+.pin:hover,
+.pin:focus-visible {
+  z-index: 9;
 }
 .pin.open > span {
   animation: pulse 2s infinite;
-}
-.pin.locked {
-  opacity: 0.62;
-}
-.pin.locked > span {
-  background: #77958b;
 }
 .pin.dense {
   z-index: 4;
@@ -953,6 +953,11 @@ input:focus-visible {
     opacity 0.16s ease,
     transform 0.16s ease;
 }
+.pin.dense.flip > b {
+  left: auto;
+  right: 22px;
+  transform: translateX(4px);
+}
 .pin.dense:hover,
 .pin.dense:focus-visible {
   z-index: 8;
@@ -973,8 +978,8 @@ input:focus-visible {
   padding: 9px 12px;
   display: flex;
   gap: 14px;
-  font-size: 9px;
-  color: #6d7c76;
+  font-size: 11px;
+  color: #5f6b65;
   box-shadow: 0 3px 12px rgba(36, 61, 53, 0.14);
   backdrop-filter: blur(10px);
 }
@@ -1009,7 +1014,7 @@ input:focus-visible {
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.88);
   color: #58665f;
-  font-size: 8px;
+  font-size: 10px;
   text-decoration: none;
 }
 .map-attribution:hover {
@@ -1052,7 +1057,7 @@ input:focus-visible {
     600 18px 'DM Sans',
     Arial,
     sans-serif;
-  color: #a5aaa1;
+  color: #7f8a85;
 }
 .province-glyph {
   width: 40px;
@@ -1083,8 +1088,8 @@ input:focus-visible {
   display: block;
 }
 .province-list small {
-  font-size: 8px;
-  color: #60907e;
+  font-size: 10px;
+  color: #4d7a64;
   letter-spacing: 0.12em;
 }
 .province-list b {
@@ -1093,8 +1098,8 @@ input:focus-visible {
 }
 .province-list em {
   font-style: normal;
-  font-size: 10px;
-  color: #999;
+  font-size: 11px;
+  color: #6b7873;
 }
 .complete,
 .go {
@@ -1596,8 +1601,8 @@ input:focus-visible {
   padding: 9px 13px;
   border: 1px solid var(--line);
   border-radius: 9px;
-  font-size: 10px;
-  color: #888;
+  font-size: 11px;
+  color: #5f6b65;
   background: white;
   white-space: nowrap;
 }
@@ -1756,8 +1761,8 @@ input:focus-visible {
   font-size: 12px;
 }
 .leaderboard small {
-  font-size: 9px;
-  color: #999;
+  font-size: 11px;
+  color: #6b7873;
 }
 .leaderboard strong {
   font-size: 11px;
@@ -1809,8 +1814,8 @@ input:focus-visible {
     sans-serif;
 }
 .rank-stat small {
-  font-size: 9px;
-  opacity: 0.65;
+  font-size: 11px;
+  opacity: 0.78;
 }
 .profile-hero {
   background: #1c604f;
@@ -1875,16 +1880,24 @@ input:focus-visible {
     sans-serif;
 }
 .profile-numbers small {
-  font-size: 9px;
-  color: #999;
+  font-size: 11px;
+  color: #6b7873;
 }
 .level-line p {
   display: flex;
   justify-content: space-between;
-  font-size: 10px;
+  font-size: 11px;
 }
 .level-line small {
-  color: #999;
+  color: #6b7873;
+  font-size: 11px;
+}
+.level-note {
+  margin: 10px 0 0;
+}
+.level-note small {
+  color: #6b7873;
+  font-size: 11px;
 }
 .badges {
   display: flex;
@@ -1912,10 +1925,25 @@ input:focus-visible {
   box-shadow: 0 0 0 1px #d4a342;
 }
 .badges b {
-  font-size: 9px;
+  font-size: 11px;
 }
 .badges .locked {
   opacity: 0.35;
+}
+@media (max-width: 900px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+  .profile-grid > *,
+  .profile-hero,
+  .level-line {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .badges {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 }
 .badges .locked i {
   background: #98a19c;
@@ -3642,7 +3670,7 @@ input:focus-visible {
   --line: #e7e4da;
   background:
     radial-gradient(circle at 92% 4%, rgba(91, 174, 205, 0.13), transparent 24%),
-    radial-gradient(circle at 13% 95%, rgba(223, 32, 41, 0.06), transparent 25%), #ffffff;
+    radial-gradient(circle at 13% 95%, rgba(223, 32, 41, 0.06), transparent 25%), #f7f8f3;
   color: var(--ink);
 }
 .app-shell .topbar {
@@ -3814,6 +3842,19 @@ input:focus-visible {
   color: #26443a;
   box-shadow: 0 4px 13px rgba(29, 79, 62, 0.16);
 }
+@media (min-width: 641px) {
+  .app-shell .sidebar {
+    position: sticky;
+    top: 78px;
+    height: calc(100vh - 78px);
+    overflow-y: auto;
+  }
+}
+@media (max-width: 900px) {
+  .app-shell .app-layout {
+    grid-template-columns: 82px 1fr;
+  }
+}
 .app-shell .map-legend,
 .app-shell .map-attribution {
   border-color: #eee5d7;
@@ -3825,6 +3866,9 @@ input:focus-visible {
 }
 .app-shell .lg.all {
   background: linear-gradient(135deg, #df2029 50%, #168166 50%);
+}
+.app-shell .map-title span {
+  color: #5f6b65;
 }
 .app-shell .province-list {
   border-color: #e8e4da;
@@ -4167,9 +4211,8 @@ input:focus-visible {
   display: block;
   margin: 0 0 6px;
   color: #40504a;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 .demo-auth-modal form input {
@@ -4201,21 +4244,18 @@ input:focus-visible {
   padding: 9px 11px;
   border-left: 3px solid #d62931;
   border-radius: 8px;
-  background: #fff0ed;
+  font-size: 11px;
   color: #8c3833;
-  font-size: 10px;
   line-height: 1.4;
 }
 .google-auth-button {
   min-height: 45px;
   border: 1px solid #d8dcd5;
   border-radius: 12px;
-  background: #fff;
   color: #293631;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
   font-size: 12px;
   font-weight: 700;
   box-shadow: 0 6px 16px rgba(29, 68, 55, 0.07);
@@ -4244,12 +4284,12 @@ input:focus-visible {
 }
 .cloudflare-note {
   margin: 14px 0 0;
-  color: #89928e;
+  color: #6b7873;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 5px;
-  font-size: 8px;
+  font-size: 10px;
 }
 .auth-account {
   padding: 12px 0 2px;
@@ -4258,7 +4298,7 @@ input:focus-visible {
 .auth-account > .google-mark {
   width: 48px;
   height: 48px;
-  margin: 0 auto 16px;
+  font-size: 11px;
   font-size: 22px;
 }
 .auth-account h2 {
@@ -4272,8 +4312,8 @@ input:focus-visible {
   display: block;
   max-width: 310px;
   margin: 14px auto 20px;
-  color: #89918e;
-  font-size: 9px;
+  color: #6b7873;
+  font-size: 11px;
   line-height: 1.5;
 }
 .auth-account .secondary {
@@ -4292,7 +4332,7 @@ input:focus-visible {
   gap: 7px;
   padding: 0 11px 0 6px;
   overflow: hidden;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -4354,6 +4394,9 @@ input:focus-visible {
   flex-direction: column;
   align-items: flex-end;
   gap: 8px;
+}
+body:has(.app-shell) .pwa-install {
+  bottom: 22px;
 }
 .pwa-install__box {
   width: 58px;
@@ -4454,8 +4497,11 @@ input:focus-visible {
     display: flex;
     align-items: center;
     padding: 0 8px;
-    font-size: 9px;
+    font-size: 10px;
     line-height: 1.1;
+  }
+  .map-legend {
+    bottom: 62px;
   }
   .secondary,
   .primary,
@@ -4466,7 +4512,8 @@ input:focus-visible {
 }
 
 @media (max-width: 640px) {
-  .pwa-install {
+  .pwa-install,
+  body:has(.app-shell) .pwa-install {
     right: 12px;
     bottom: 92px;
   }
@@ -4630,4 +4677,79 @@ input:focus-visible {
   .pricing-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Redesigned Tapak Nusa Explorer Dashboard (Plus Jakarta Sans + Emerald Mint Theme) */
+.nusa-dashboard {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #f4f9f7 0%, #ebf5f1 50%, #f7faf9 100%);
+  color: #1e293b;
+  overflow-x: hidden;
+}
+body:has(.nusa-dashboard) .pwa-install {
+  display: none;
+}
+.nusa-dashboard .shadow-soft {
+  box-shadow:
+    0 10px 30px -5px rgba(13, 92, 70, 0.06),
+    0 4px 12px -2px rgba(13, 92, 70, 0.03);
+}
+.nusa-dashboard .shadow-card {
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
+}
+.nusa-dashboard .shadow-float {
+  box-shadow: 0 12px 28px -4px rgba(13, 92, 70, 0.14);
+}
+.nusa-dashboard .map-ocean {
+  background: radial-gradient(circle at 35% 40%, #cbe8ec 0%, #a9d6de 48%, #8ac3ce 100%);
+}
+.nusa-dashboard .island-land {
+  fill: #eef5e6;
+  stroke: #d6e5c8;
+  stroke-width: 1.5;
+  filter: drop-shadow(0px 4px 6px rgba(13, 92, 70, 0.12));
+  transition: all 0.3s ease;
+}
+.nusa-dashboard .island-land:hover {
+  fill: #e3f0d6;
+}
+.nusa-dashboard .island-highlight {
+  fill: #d8eed2;
+  stroke: #86b87a;
+  stroke-width: 2;
+}
+@keyframes nusa-pulse-ring {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.8;
+  }
+  70% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+.nusa-dashboard .pin-pulse::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 9999px;
+  background: currentColor;
+  animation: nusa-pulse-ring 2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+  z-index: 0;
+}
+@keyframes nusa-float-slow {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+.nusa-dashboard .animate-float {
+  animation: nusa-float-slow 3.5s ease-in-out infinite;
 }

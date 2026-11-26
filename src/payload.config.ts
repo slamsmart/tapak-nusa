@@ -21,6 +21,16 @@ const dirname = path.dirname(filename)
 // rather than from static config.
 const { DB, MEDIA_BUCKET } = await getBindings()
 
+// `wrangler types` types process.env from .env, so the compiler cannot see that
+// a deploy without the Worker secret would boot Payload with an undefined
+// signing key (silently broken admin sessions). Fail loudly instead.
+const secret = process.env.PAYLOAD_SECRET
+if (!secret) {
+  throw new Error(
+    'PAYLOAD_SECRET is missing. Set it in .env for local and CLI runs, and as a Worker secret for deploys.',
+  )
+}
+
 export default buildConfig({
   admin: {
     user: Admins.slug,
@@ -51,7 +61,7 @@ export default buildConfig({
     CultureEntries,
   ],
   db: sqliteD1Adapter({ binding: DB }),
-  secret: process.env.PAYLOAD_SECRET,
+  secret,
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },

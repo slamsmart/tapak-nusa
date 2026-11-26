@@ -2,10 +2,17 @@ import { getCloudflareContext } from '@opennextjs/cloudflare'
 import { createRequire } from 'node:module'
 import type * as Wrangler from 'wrangler'
 
-export type Bindings = {
-  DB: D1Database
-  MEDIA_BUCKET: R2Bucket
+/**
+ * `Cloudflare.Env` is generated from wrangler.jsonc by `pnpm cf:typegen`
+ * (worker-configuration.d.ts). Extending the adapter's own `CloudflareEnv` with
+ * it keeps `getCloudflareContext().env` in sync with the real bindings instead
+ * of maintaining a second, drift-prone copy.
+ */
+declare global {
+  interface CloudflareEnv extends Cloudflare.Env {}
 }
+
+export type Bindings = Pick<Cloudflare.Env, 'DB' | 'MEDIA_BUCKET'>
 
 let proxyBindings: Promise<Bindings> | undefined
 

@@ -1,4 +1,6 @@
-import type { CollectionConfig } from 'payload'
+import type { Access, CollectionConfig } from 'payload'
+
+const isAdmin: Access = ({ req }) => req.user?.collection === 'admins'
 
 /**
  * A province shown on the Tapak Nusa map plus the opening text of its
@@ -11,7 +13,10 @@ export const Provinces: CollectionConfig = {
     plural: 'Provinces',
   },
   access: {
+    create: isAdmin,
+    delete: isAdmin,
     read: () => true,
+    update: isAdmin,
   },
   admin: {
     group: 'Tapak Nusa',

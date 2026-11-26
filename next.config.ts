@@ -22,7 +22,9 @@ if (process.env.NEXT_PHASE !== 'phase-production-build') {
 // dist lock check ("Another next build process is already running") or clean
 // files out from under the in-flight build.
 const nextConfig: NextConfig = {
-  distDir: process.env.NEXT_DIST_DIR ?? (process.env.NODE_ENV === 'development' ? '.next-dev' : '.next'),
+  // The dev server is reached from 127.0.0.1/localhost during local work;
+  // Next 16 blocks cross-origin dev resources (HMR, RSC) without this list.
+  allowedDevOrigins: ['127.0.0.1', 'localhost'],
   webpack: (webpackConfig) => {
     webpackConfig.resolve.extensionAlias = {
       '.cjs': ['.cts', '.cjs'],
@@ -38,10 +40,6 @@ const nextConfig: NextConfig = {
   images: {
     // Payload returns absolute R2/Payload URLs; the browser fetches them directly.
     unoptimized: true,
-  },
-  // Don't block the Worker bundle on type errors from generated types.
-  typescript: {
-    ignoreBuildErrors: true,
   },
 }
 
