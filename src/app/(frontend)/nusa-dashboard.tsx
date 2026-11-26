@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import type {
   SiteAdventure as Adventure,
   SiteCard as CultureCard,
@@ -687,8 +687,8 @@ function NusaBrandPinLogo() {
 
 function SidebarPuraScene() {
   return (
-    <div className="relative w-full flex-1 min-h-[300px] lg:min-h-[360px] max-h-[480px] mt-auto pointer-events-none select-none overflow-hidden flex items-end">
-      <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#F9FCFA] to-transparent z-10" />
+    <div className="relative w-full flex-1 min-h-[260px] mt-auto pointer-events-none select-none overflow-hidden flex items-end">
+      <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#F9FCFA] via-[#F9FCFA]/80 to-transparent z-10" />
       <svg
         viewBox="0 0 260 400"
         className="w-full h-full object-cover object-bottom"
@@ -872,6 +872,12 @@ export default function NusaDashboard({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [mapRegion, setMapRegion] = useState<MapRegion>('all')
   const [mapZoom, setMapZoom] = useState(1)
+  const [mapPan, setMapPan] = useState({ x: 0, y: 0 })
+  const [isPanning, setIsPanning] = useState(false)
+  const mapContainerRef = useRef<HTMLDivElement | null>(null)
+  const dragStartRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null)
+  const touchStartRef = useRef<{ x: number; y: number; dist?: number; panX: number; panY: number } | null>(null)
+  const hasMovedRef = useRef(false)
   const [showExtraLabels, setShowExtraLabels] = useState(false)
   const [timeframe, setTimeframe] = useState<'7days' | '30days'>('7days')
   const [selectedPointIdx, setSelectedPointIdx] = useState(4)
@@ -909,6 +915,137 @@ export default function NusaDashboard({
     setTimeout(() => {
       setToasts((prev) => prev.filter((item) => item.id !== id))
     }, 3000)
+  }
+
+  // Non-passive wheel listener for smooth map zoom + auto-compact position
+  useEffect(() => {
+    const el = mapContainerRef.current
+    if (!el) return
+
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87
+      setMapZoom((prevZoom) => {
+        const nextZoom = Math.min(2.8, Math.max(0.85, +(prevZoom * zoomFactor).toFixed(2)))
+        // Auto compact position: when zooming out close to 1x or lower, smoothly recenter pan
+        if (nextZoom <= 1.05) {
+          setMapPan((prev) => ({
+            x: +(prev.x * 0.35).toFixed(1),
+            y: +(prev.y * 0.35).toFixed(1),
+          }))
+        }
+        return nextZoom
+      })
+    }
+
+    el.addEventListener('wheel', handleWheel, { passive: false })
+    return () => el.removeEventListener('wheel', handleWheel)
+  }, [])
+
+  function handleSelectRegion(reg: MapRegion) {
+    setMapRegion(reg)
+    if (reg === 'all') {
+      setMapZoom(1)
+      setMapPan({ x: 0, y: 0 })
+    } else if (reg === 'barat') {
+      setMapZoom(1.35)
+      setMapPan({ x: 180, y: 15 })
+    } else if (reg === 'tengah') {
+      setMapZoom(1.35)
+      setMapPan({ x: 0, y: -20 })
+    } else if (reg === 'timur') {
+      setMapZoom(1.45)
+      setMapPan({ x: -220, y: -10 })
+    }
+  }
+
+  function handleResetMap() {
+    setMapZoom(1)
+    setMapPan({ x: 0, y: 0 })
+    setMapRegion('all')
+  }
+
+  function handleMouseDown(e: React.MouseEvent) {
+    if (e.button !== 0) return
+    dragStartRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      panX: mapPan.x,
+      panY: mapPan.y,
+    }
+    hasMovedRef.current = false
+    setIsPanning(true)
+  }
+
+  function handleMouseMove(e: React.MouseEvent) {
+    if (!dragStartRef.current) return
+    const dx = e.clientX - dragStartRef.current.x
+    const dy = e.clientY - dragStartRef.current.y
+    if (Math.hypot(dx, dy) > 5) {
+      hasMovedRef.current = true
+    }
+    const maxPanX = Math.max(140, (mapZoom - 0.7) * 420)
+    const maxPanY = Math.max(90, (mapZoom - 0.7) * 240)
+    const nextX = Math.min(maxPanX, Math.max(-maxPanX, dragStartRef.current.panX + dx))
+    const nextY = Math.min(maxPanY, Math.max(-maxPanY, dragStartRef.current.panY + dy))
+    setMapPan({ x: nextX, y: nextY })
+  }
+
+  function handleMouseUp() {
+    dragStartRef.current = null
+    setIsPanning(false)
+  }
+
+  function handleTouchStart(e: React.TouchEvent) {
+    if (e.touches.length === 1) {
+      touchStartRef.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+        panX: mapPan.x,
+        panY: mapPan.y,
+      }
+      hasMovedRef.current = false
+    } else if (e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY,
+      )
+      touchStartRef.current = {
+        x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+        y: (e.touches[0].clientY + e.touches[1].clientY) / 2,
+        dist,
+        panX: mapPan.x,
+        panY: mapPan.y,
+      }
+    }
+  }
+
+  function handleTouchMove(e: React.TouchEvent) {
+    if (!touchStartRef.current) return
+    if (e.touches.length === 1 && !touchStartRef.current.dist) {
+      const dx = e.touches[0].clientX - touchStartRef.current.x
+      const dy = e.touches[0].clientY - touchStartRef.current.y
+      if (Math.hypot(dx, dy) > 5) {
+        hasMovedRef.current = true
+      }
+      const maxPanX = Math.max(140, (mapZoom - 0.7) * 420)
+      const maxPanY = Math.max(90, (mapZoom - 0.7) * 240)
+      setMapPan({
+        x: Math.min(maxPanX, Math.max(-maxPanX, touchStartRef.current.panX + dx)),
+        y: Math.min(maxPanY, Math.max(-maxPanY, touchStartRef.current.panY + dy)),
+      })
+    } else if (e.touches.length === 2 && touchStartRef.current.dist) {
+      const newDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY,
+      )
+      const ratio = newDist / touchStartRef.current.dist
+      setMapZoom((z) => Math.min(2.8, Math.max(0.85, +(z * ratio).toFixed(2))))
+    }
+  }
+
+  function handleTouchEnd() {
+    touchStartRef.current = null
   }
 
   function switchTab(tab: DashboardTab) {
@@ -1195,7 +1332,7 @@ export default function NusaDashboard({
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 min-w-0 p-4 sm:p-6 lg:px-8 lg:py-6 max-w-[1400px] mx-auto w-full space-y-6">
+      <main className="flex-1 min-w-0 p-4 sm:p-6 lg:px-8 xl:px-10 max-w-[1560px] mx-auto w-full space-y-6">
         {/* TOP HEADER STATUS BAR (Desktop & Tablet) */}
         <div className="flex flex-wrap items-center justify-end gap-2.5 sm:gap-3">
           {/* Streak Badge */}
@@ -1427,7 +1564,7 @@ export default function NusaDashboard({
                       <button
                         key={reg}
                         type="button"
-                        onClick={() => setMapRegion(reg)}
+                        onClick={() => handleSelectRegion(reg)}
                         className={
                           mapRegion === reg
                             ? 'px-4 py-1.5 rounded-full text-xs font-bold bg-[#0D5C46] text-white shadow-xs transition cursor-pointer'
@@ -1460,11 +1597,28 @@ export default function NusaDashboard({
                 </div>
               </div>
 
-              {/* Interactive Map Canvas Container */}
-              <div className="relative w-full h-[340px] sm:h-[400px] lg:h-[430px] rounded-2xl overflow-hidden map-ocean border border-cyan-200/60 select-none">
+              {/* Interactive Map Canvas Container (Supports Scroll-Wheel Zoom & Left-Click Drag Pan) */}
+              <div
+                ref={mapContainerRef}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                onDoubleClick={handleResetMap}
+                className={`relative w-full h-[360px] sm:h-[420px] lg:h-[460px] xl:h-[500px] rounded-3xl overflow-hidden map-ocean border border-cyan-200/60 select-none ${
+                  isPanning ? 'cursor-grabbing' : 'cursor-grab'
+                }`}
+              >
                 <div
-                  className="w-full h-full transition-transform duration-300 ease-out origin-center relative"
-                  style={{ transform: `scale(${mapZoom})` }}
+                  className={`w-full h-full ${
+                    isPanning ? 'transition-none' : 'transition-transform duration-300 ease-out'
+                  } origin-center relative`}
+                  style={{
+                    transform: `translate3d(${mapPan.x}px, ${mapPan.y}px, 0) scale(${mapZoom})`,
+                  }}
                 >
                   <svg
                     viewBox="0 0 1000 420"
@@ -1589,7 +1743,10 @@ export default function NusaDashboard({
                       <button
                         key={prov.id}
                         type="button"
-                        onClick={() => openProvinceById(prov.id)}
+                        onClick={() => {
+                          if (hasMovedRef.current) return
+                          openProvinceById(prov.id)
+                        }}
                         title={`${prov.name} (${prov.island})`}
                         aria-label={`Jelajahi ${prov.name}`}
                         style={{
@@ -1614,7 +1771,10 @@ export default function NusaDashboard({
                   {(mapRegion === 'all' || mapRegion === 'barat') && (
                     <button
                       type="button"
-                      onClick={() => openProvinceById('aceh')}
+                      onClick={() => {
+                        if (hasMovedRef.current) return
+                        openProvinceById('aceh')
+                      }}
                       className="absolute left-[4%] sm:left-[6%] top-[6%] sm:top-[8%] z-20 cursor-pointer group text-left"
                     >
                       <div className="flex items-center gap-3 bg-white/95 backdrop-blur-md p-2 pr-4 rounded-2xl shadow-float border border-emerald-100 group-hover:scale-105 transition-transform">
@@ -1645,7 +1805,10 @@ export default function NusaDashboard({
                   {(mapRegion === 'all' || mapRegion === 'barat') && (
                     <button
                       type="button"
-                      onClick={() => openProvinceById('sumbar')}
+                      onClick={() => {
+                        if (hasMovedRef.current) return
+                        openProvinceById('sumbar')
+                      }}
                       className="absolute left-[13%] sm:left-[16%] top-[41%] sm:top-[42%] z-20 cursor-pointer group"
                     >
                       <div className="flex items-center gap-2 bg-white/95 backdrop-blur-md p-1.5 pr-3.5 rounded-full shadow-md border border-slate-100 group-hover:scale-105 group-hover:border-emerald-300 transition-all">
@@ -1665,7 +1828,10 @@ export default function NusaDashboard({
                   {(mapRegion === 'all' || mapRegion === 'barat') && (
                     <button
                       type="button"
-                      onClick={() => openProvinceById('jakarta')}
+                      onClick={() => {
+                        if (hasMovedRef.current) return
+                        openProvinceById('jakarta')
+                      }}
                       className="absolute left-[26%] sm:left-[29%] top-[62%] sm:top-[63%] z-20 cursor-pointer group"
                     >
                       <div className="flex items-center gap-2 bg-white/95 backdrop-blur-md p-1.5 pr-3.5 rounded-full shadow-md border border-slate-100 group-hover:scale-105 group-hover:border-emerald-300 transition-all">
@@ -1685,7 +1851,10 @@ export default function NusaDashboard({
                   {(showExtraLabels || mapRegion === 'barat') && (
                     <button
                       type="button"
-                      onClick={() => openProvinceById('yogya')}
+                      onClick={() => {
+                        if (hasMovedRef.current) return
+                        openProvinceById('yogya')
+                      }}
                       className="hidden sm:flex absolute left-[38%] top-[74%] z-20 cursor-pointer group"
                     >
                       <div className="flex items-center gap-2 bg-white/95 backdrop-blur-md p-1.5 pr-3 rounded-full shadow-md border border-slate-100 group-hover:scale-105 transition-all">
@@ -1705,7 +1874,10 @@ export default function NusaDashboard({
                   {(mapRegion === 'all' || mapRegion === 'tengah') && (
                     <button
                       type="button"
-                      onClick={() => openProvinceById('bali')}
+                      onClick={() => {
+                        if (hasMovedRef.current) return
+                        openProvinceById('bali')
+                      }}
                       className="absolute left-[46%] sm:left-[48%] top-[68%] sm:top-[70%] z-20 cursor-pointer group"
                     >
                       <div className="flex items-center gap-2 bg-white/95 backdrop-blur-md p-1.5 pr-3.5 rounded-full shadow-md border border-slate-100 group-hover:scale-105 group-hover:border-emerald-300 transition-all">
@@ -1725,7 +1897,10 @@ export default function NusaDashboard({
                   {(showExtraLabels || mapRegion === 'tengah') && (
                     <button
                       type="button"
-                      onClick={() => openProvinceById('sulsel')}
+                      onClick={() => {
+                        if (hasMovedRef.current) return
+                        openProvinceById('sulsel')
+                      }}
                       className="absolute left-[56%] top-[44%] z-20 cursor-pointer group"
                     >
                       <div className="flex items-center gap-2 bg-white/95 backdrop-blur-md p-1.5 pr-3 rounded-full shadow-md border border-slate-100 group-hover:scale-105 transition-all">
@@ -1745,7 +1920,10 @@ export default function NusaDashboard({
                   {(showExtraLabels || mapRegion === 'timur') && (
                     <button
                       type="button"
-                      onClick={() => openProvinceById('papua')}
+                      onClick={() => {
+                        if (hasMovedRef.current) return
+                        openProvinceById('papua')
+                      }}
                       className="absolute left-[79%] top-[45%] z-20 cursor-pointer group"
                     >
                       <div className="flex items-center gap-2 bg-white/95 backdrop-blur-md p-1.5 pr-3 rounded-full shadow-md border border-slate-100 group-hover:scale-105 transition-all">
@@ -1766,18 +1944,29 @@ export default function NusaDashboard({
                 <div className="absolute top-3.5 right-3.5 flex flex-col bg-white rounded-xl shadow-md border border-slate-100 overflow-hidden z-30">
                   <button
                     type="button"
-                    onClick={() => setMapZoom((z) => Math.min(1.6, +(z + 0.15).toFixed(2)))}
+                    onClick={() => setMapZoom((z) => Math.min(2.8, +(z + 0.2).toFixed(2)))}
                     className="w-9 h-9 flex items-center justify-center text-slate-700 hover:bg-slate-50 font-bold border-b border-slate-100 transition cursor-pointer"
-                    title="Perbesar"
+                    title="Perbesar (Zoom In)"
                     aria-label="Perbesar peta"
                   >
                     <LucideSvg name="plus" className="w-4 h-4" />
                   </button>
                   <button
                     type="button"
-                    onClick={() => setMapZoom((z) => Math.max(0.85, +(z - 0.15).toFixed(2)))}
+                    onClick={() =>
+                      setMapZoom((z) => {
+                        const next = Math.max(0.85, +(z - 0.2).toFixed(2))
+                        if (next <= 1.05) {
+                          setMapPan((p) => ({
+                            x: +(p.x * 0.4).toFixed(1),
+                            y: +(p.y * 0.4).toFixed(1),
+                          }))
+                        }
+                        return next
+                      })
+                    }
                     className="w-9 h-9 flex items-center justify-center text-slate-700 hover:bg-slate-50 font-bold transition cursor-pointer"
-                    title="Perkecil"
+                    title="Perkecil (Zoom Out)"
                     aria-label="Perkecil peta"
                   >
                     <LucideSvg name="minus" className="w-4 h-4" />
@@ -1787,11 +1976,8 @@ export default function NusaDashboard({
                 {/* Map Control: Reset Compass Bottom Left */}
                 <button
                   type="button"
-                  onClick={() => {
-                    setMapZoom(1)
-                    setMapRegion('all')
-                  }}
-                  title="Reset Posisi Peta"
+                  onClick={handleResetMap}
+                  title="Reset Posisi & Zoom Peta"
                   aria-label="Reset posisi peta"
                   className="absolute bottom-3.5 left-3.5 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-slate-600 shadow-md flex items-center justify-center z-30 transition cursor-pointer"
                 >
