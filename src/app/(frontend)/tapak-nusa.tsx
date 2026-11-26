@@ -62,8 +62,9 @@ type PricingPlan = {
   badge: string | null
 }
 
-// Mayar membership checkout URL (product id 9932249f-3141-44b7-be71-9aee57ba22a6).
-const mayarCheckoutUrl = 'https://id-map.myr.id/Tapak-Nusa-Premium'
+// Mayar membership checkout: 1 tier "Premium 3 Bulan", 1 tier "Premium Lifetime", 1 tier
+// "Premium" with a single 1-month period. The buyer picks tier and billing cycle on the page.
+const mayarCheckoutUrl = 'https://id-map.myr.id/m/Tapak-Nusa-Premium'
 
 const pricingPlans: PricingPlan[] = [
   {

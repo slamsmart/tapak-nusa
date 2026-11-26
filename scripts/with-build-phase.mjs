@@ -17,4 +17,9 @@ if (!command) {
 }
 
 const result = spawnSync(command, args, { stdio: 'inherit', shell: true })
+
+if (result.status === 0 && (command.includes('opennextjs-cloudflare') || args.includes('opennextjs-cloudflare'))) {
+  spawnSync('node scripts/patch-opennext.mjs', { stdio: 'inherit', shell: true })
+}
+
 process.exit(result.status ?? 1)
