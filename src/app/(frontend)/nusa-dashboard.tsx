@@ -1271,7 +1271,7 @@ export default function NusaDashboard({
   }, [modalStep, activeQuestion, verdict, checking])
 
   return (
-    <div className="nusa-dashboard min-h-screen flex flex-col lg:flex-row selection:bg-emerald-200 selection:text-emerald-900">
+    <div className="nusa-dashboard min-h-screen flex flex-col lg:flex-row bg-white selection:bg-rose-100 selection:text-rose-900">
       {/* Toast Notification Container */}
       <div className="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none">
         {toasts.map((toast) => (
@@ -1321,7 +1321,7 @@ export default function NusaDashboard({
 
       {/* LEFT SIDEBAR */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 glass bg-white/70 flex flex-col justify-between transform ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-100 flex flex-col justify-between transform ${
           mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         } lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen transition-transform duration-300 ease-in-out overflow-hidden shrink-0`}
       >
@@ -1348,13 +1348,13 @@ export default function NusaDashboard({
 
           {/* Navigation Links */}
           <Liquid
-            className="space-y-1.5"
+            className="flex flex-col gap-1.5"
             role="navigation"
             aria-label="Menu Dashboard"
             blur={3}
             contrast={16}
             fill="rgba(255, 255, 255, 0.6)"
-            shadow="0 8px 20px -8px rgba(13, 92, 70, 0.45)"
+            shadow="0 10px 24px -18px rgba(13, 92, 70, 0.3)"
           >
             {(
               [
@@ -1536,19 +1536,6 @@ export default function NusaDashboard({
           <div className="space-y-6">
             {/* HERO SECTION */}
             <section className="relative">
-              {/* Subtle Decorative Clover Watermark on Right */}
-              <svg
-                className="hidden xl:block absolute right-6 top-2 w-28 h-28 text-emerald-200/40 pointer-events-none"
-                viewBox="0 0 100 100"
-                fill="currentColor"
-                aria-hidden
-              >
-                <circle cx="35" cy="35" r="22" />
-                <circle cx="65" cy="35" r="22" />
-                <circle cx="35" cy="65" r="22" />
-                <circle cx="65" cy="65" r="22" />
-              </svg>
-
               {/* 4 STAT CARDS + PRIMARY CTA ROW — one liquid-gooey group: the
                   boxes share a single glass surface, so hovering a box bridges
                   into its neighbour like liquid. */}
@@ -1557,7 +1544,7 @@ export default function NusaDashboard({
                 blur={6}
                 contrast={16}
                 fill="rgba(255, 255, 255, 0.72)"
-                shadow="0 10px 24px -8px rgba(13, 92, 70, 0.5)"
+                shadow="0 14px 34px -22px rgba(0, 0, 0, 0.08)"
                 filterPadding={36}
               >
                 {/* Stat 1: Provinsi */}
@@ -2283,7 +2270,7 @@ export default function NusaDashboard({
               </button>
 
               <div className="absolute bottom-4 left-6 right-6 text-white">
-                <span className="inline-block px-2.5 py-0.5 rounded-full bg-emerald-500/90 text-[10px] font-bold uppercase tracking-wider mb-1.5">
+                <span className="inline-block px-3 py-1 rounded-full bg-[#E11D48] text-white text-[10px] font-extrabold uppercase tracking-wider mb-1.5 shadow-xs">
                   {regionLabelFor(regionForProvince(selectedProvince.id))} •{' '}
                   {selectedProvince.island}
                 </span>

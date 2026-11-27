@@ -4812,7 +4812,7 @@ body:has(.app-shell) .pwa-install {
    Typeface matches the landing page (El Messiri) so both surfaces stay uniform. */
 .nusa-dashboard {
   font-family: 'El Messiri', Arial, sans-serif;
-  background: linear-gradient(135deg, #f4f9f7 0%, #ebf5f1 50%, #f7faf9 100%);
+  background: #ffffff;
   color: #1e293b;
   overflow-x: hidden;
 }
