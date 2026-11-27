@@ -51,10 +51,6 @@ type DailyState = { date: string; answers: number }
 
 const dailyTarget = 3
 
-// The provinces ordered first in the CMS keep the full-size numbered pin; the
-// rest render compact so the map stays readable.
-const heroPinCount = 5
-
 // Level thresholds double as the progress bar targets in the profile view.
 const levelLadder = [
   { min: 0, title: 'Penjelajah' },
@@ -246,6 +242,49 @@ function SupportBadge() {
         height="49"
       />
     </aside>
+  )
+}
+
+type LandingNavItem = 'explore' | 'culture' | 'stories' | 'map' | 'about'
+
+function LandingNav({
+  active,
+  onExplore,
+  onCulture,
+  onStories,
+  onMap,
+  onPremium,
+  onAbout,
+}: {
+  active: LandingNavItem
+  onExplore: () => void
+  onCulture: () => void
+  onStories: () => void
+  onMap: () => void
+  onPremium: () => void
+  onAbout: () => void
+}) {
+  const items: Array<{ key: LandingNavItem; icon: string; label: string; onClick: () => void }> = [
+    { key: 'explore', icon: 'map', label: 'Jelajahi', onClick: onExplore },
+    { key: 'culture', icon: 'star', label: 'Budaya', onClick: onCulture },
+    { key: 'stories', icon: 'book', label: 'Cerita', onClick: onStories },
+    { key: 'map', icon: 'map', label: 'Peta Budaya', onClick: onMap },
+    { key: 'premium', icon: 'trophy', label: 'Premium', onClick: onPremium },
+    { key: 'about', icon: 'user', label: 'Tentang', onClick: onAbout },
+  ]
+
+  return (
+    <nav className="home-nav" aria-label="Navigasi utama">
+      {items.map((item) => (
+        <button
+          key={item.key}
+          className={active === item.key ? 'home-nav-active' : ''}
+          onClick={item.onClick}
+        >
+          <Icon name={item.icon} size={16} /> {item.label}
+        </button>
+      ))}
+    </nav>
   )
 }
 
@@ -458,14 +497,23 @@ function DemoAuthModal({
 
 function AboutLanding({
   authModal,
+  pricingModal,
   onBack,
   onExplore,
   onCollection,
+  onCulture,
+  onStories,
+  onPremium,
 }: {
   authModal: React.ReactNode
+  pricingModal: React.ReactNode
   onBack: () => void
   onExplore: () => void
   onCollection: () => void
+  onCulture: () => void
+  onStories: () => void
+  onMap: () => void
+  onPremium: () => void
 }) {
   const pillars = [
     {
@@ -495,6 +543,17 @@ function AboutLanding({
           <Icon name="back" size={16} /> Kembali ke homepage
         </button>
       </header>
+      <div className="about-navrow">
+        <LandingNav
+          active="about"
+          onExplore={onExplore}
+          onCulture={onCulture}
+          onStories={onStories}
+          onMap={onMap}
+          onPremium={onPremium}
+          onAbout={onBack}
+        />
+      </div>
 
       <section className="about-hero">
         <div className="about-hero-copy">
@@ -553,6 +612,7 @@ function AboutLanding({
       </section>
       <SupportBadge />
       {authModal}
+      {pricingModal}
     </main>
   )
 }
@@ -561,14 +621,26 @@ function PublicDiscoveryLanding({
   page,
   content,
   authModal,
+  pricingModal,
   onBack,
   onDashboard,
+  onExplore,
+  onCulture,
+  onStories,
+  onPremium,
+  onAbout,
 }: {
   page: PublicPage
   content: SiteContent
   authModal: React.ReactNode
+  pricingModal: React.ReactNode
   onBack: () => void
   onDashboard: () => void
+  onExplore: () => void
+  onCulture: () => void
+  onStories: () => void
+  onPremium: () => void
+  onAbout: () => void
 }) {
   const copy = {
     culture: {
@@ -608,6 +680,17 @@ function PublicDiscoveryLanding({
           <Icon name="back" size={16} /> Kembali ke homepage
         </button>
       </header>
+      <div className="about-navrow">
+        <LandingNav
+          active={page}
+          onExplore={onExplore}
+          onCulture={onCulture}
+          onStories={onStories}
+          onMap={onDashboard}
+          onPremium={onPremium}
+          onAbout={onAbout}
+        />
+      </div>
 
       <section className="public-discovery__hero">
         <div>
@@ -708,6 +791,7 @@ function PublicDiscoveryLanding({
       )}
       <SupportBadge />
       {authModal}
+      {pricingModal}
     </main>
   )
 }
@@ -1018,14 +1102,26 @@ export default function TapakNusa({ content }: { content: SiteContent }) {
     />
   ) : null
 
+  const pricingModal = pricingOpen ? (
+    <PricingModal user={demoUser} onClose={() => setPricingOpen(false)} />
+  ) : null
+
   if (!started && publicPage) {
     return (
       <PublicDiscoveryLanding
         page={publicPage}
         content={content}
         authModal={authModal}
+        pricingModal={pricingModal}
         onBack={() => setPublicPage(null)}
         onDashboard={() => enterView(publicPage === 'stories' ? 'collection' : 'map')}
+        onExplore={() => enterView('map')}
+        onCulture={() => setPublicPage('culture')}
+        onStories={() => setPublicPage('stories')}
+        onAbout={() => {
+          setPublicPage(null)
+          setShowAbout(true)
+        }}
       />
     )
   }
@@ -1034,9 +1130,23 @@ export default function TapakNusa({ content }: { content: SiteContent }) {
     return (
       <AboutLanding
         authModal={authModal}
+        pricingModal={pricingModal}
         onBack={() => setShowAbout(false)}
         onExplore={() => enterView('map')}
         onCollection={() => enterView('collection')}
+        onCulture={() => {
+          setShowAbout(false)
+          setPublicPage('culture')
+        }}
+        onStories={() => {
+          setShowAbout(false)
+          setPublicPage('stories')
+        }}
+        onMap={() => {
+          setShowAbout(false)
+          setPublicPage('map')
+        }}
+        onPremium={() => setPricingOpen(true)}
       />
     )
   }
@@ -1055,31 +1165,18 @@ export default function TapakNusa({ content }: { content: SiteContent }) {
           <div className="home-brand">
             <Logo />
           </div>
-          <nav className="home-nav" aria-label="Navigasi utama">
-            <button className="home-nav-active" onClick={() => enterView('map')}>
-              <Icon name="map" size={16} /> Jelajahi
-            </button>
-            <button onClick={() => setPublicPage('culture')}>
-              <Icon name="star" size={16} /> Budaya
-            </button>
-            <button onClick={() => setPublicPage('stories')}>
-              <Icon name="book" size={16} /> Cerita
-            </button>
-            <button onClick={() => setPublicPage('map')}>
-              <Icon name="map" size={16} /> Peta Budaya
-            </button>
-            <button onClick={() => setPricingOpen(true)}>
-              <Icon name="trophy" size={16} /> Premium
-            </button>
-            <button
-              onClick={() => {
-                setPublicPage(null)
-                setShowAbout(true)
-              }}
-            >
-              <Icon name="user" size={16} /> Tentang
-            </button>
-          </nav>
+          <LandingNav
+            active="explore"
+            onExplore={() => enterView('map')}
+            onCulture={() => setPublicPage('culture')}
+            onStories={() => setPublicPage('stories')}
+            onMap={() => setPublicPage('map')}
+            onPremium={() => setPricingOpen(true)}
+            onAbout={() => {
+              setPublicPage(null)
+              setShowAbout(true)
+            }}
+          />
           <div className="home-actions">
             <button
               onClick={() => document.getElementById('home-search')?.focus()}
@@ -1252,7 +1349,7 @@ export default function TapakNusa({ content }: { content: SiteContent }) {
         <p className="home-credit">Foto: Reena Yadav & Anh Vy / Unsplash</p>
         <SupportBadge />
         {authModal}
-        {pricingOpen && <PricingModal user={demoUser} onClose={() => setPricingOpen(false)} />}
+        {pricingModal}
       </main>
     )
   }

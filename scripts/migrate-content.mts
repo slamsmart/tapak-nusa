@@ -9,11 +9,7 @@
  */
 import { getPayload } from 'payload'
 import config from '../src/payload.config.ts'
-import {
-  additionalProvinceRows,
-  adventures,
-  provinces,
-} from './legacy-content.data.mts'
+import { additionalProvinceRows, adventures, provinces } from './legacy-content.data.mts'
 
 const REGIONS = new Set(['sumatra', 'java', 'kalimantan', 'sulawesi', 'nusa', 'maluku', 'papua'])
 
@@ -37,9 +33,7 @@ type LegacyQuestion = {
   credit: string
 }
 
-const regionBySlug = new Map(
-  additionalProvinceRows.map((row) => [row.id, row.region] as const),
-)
+const regionBySlug = new Map(additionalProvinceRows.map((row) => [row.id, row.region] as const))
 
 const regionFor = (slug: string, island: string): string => {
   const known = regionBySlug.get(slug)
@@ -155,8 +149,8 @@ for (const [index, province] of provinces.entries()) {
     name: province.name,
     island: province.island,
     region: regionFor(province.id, province.island),
-    mapX: province.x,
-    mapY: province.y,
+    latitude: province.lat,
+    longitude: province.lng,
     tone: province.tone,
     status: province.status,
     score: province.score ?? null,
@@ -220,10 +214,7 @@ for (const [index, province] of provinces.entries()) {
       overrideAccess: true,
       collection: 'quiz-questions',
       where: {
-        and: [
-          { province: { equals: provinceDoc.id } },
-          { order: { equals: questionIndex } },
-        ],
+        and: [{ province: { equals: provinceDoc.id } }, { order: { equals: questionIndex } }],
       },
       limit: 1,
       pagination: false,

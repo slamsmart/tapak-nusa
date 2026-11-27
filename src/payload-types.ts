@@ -269,8 +269,14 @@ export interface Province {
   name: string;
   island: string;
   region: 'sumatra' | 'java' | 'kalimantan' | 'sulawesi' | 'nusa' | 'maluku' | 'papua';
-  mapX: number;
-  mapY: number;
+  /**
+   * Pin position on the interactive map (WGS84 decimal degrees, e.g. the provincial capital).
+   */
+  latitude?: number | null;
+  /**
+   * Pin position on the interactive map (WGS84 decimal degrees, e.g. the provincial capital).
+   */
+  longitude?: number | null;
   /**
    * Map marker colour, e.g. #ee7f42.
    */
@@ -702,8 +708,8 @@ export interface ProvincesSelect<T extends boolean = true> {
   name?: T;
   island?: T;
   region?: T;
-  mapX?: T;
-  mapY?: T;
+  latitude?: T;
+  longitude?: T;
   tone?: T;
   status?: T;
   score?: T;

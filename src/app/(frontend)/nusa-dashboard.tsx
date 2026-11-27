@@ -1,6 +1,9 @@
 'use client'
 
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import 'leaflet/dist/leaflet.css'
+import type * as LeafletNS from 'leaflet'
+import type { DivIcon, Map as LeafletMap, Marker } from 'leaflet'
 import type {
   SiteAdventure as Adventure,
   SiteCard as CultureCard,
@@ -89,6 +92,65 @@ function regionLabelFor(region: 'barat' | 'tengah' | 'timur'): string {
   if (region === 'barat') return 'Wilayah Barat'
   if (region === 'tengah') return 'Wilayah Tengah'
   return 'Wilayah Timur'
+}
+type PinAppearance = {
+  done: boolean
+  core: boolean
+  dense: boolean
+  flip: boolean
+  dim: boolean
+}
+
+function pinAppearance(
+  p: Province,
+  index: number,
+  cleared: Record<string, number>,
+  mapRegion: MapRegion,
+  showExtraLabels: boolean,
+): PinAppearance {
+  return {
+    done: cleared[p.id] !== undefined,
+    core: index < 5,
+    dense: index >= 5 && !showExtraLabels,
+    flip: (p.lng ?? 0) > 129,
+    dim: mapRegion !== 'all' && mapRegion !== regionForProvince(p.id),
+  }
+}
+
+function escapePinText(value: string): string {
+  return value.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
+}
+
+function buildPinIcon(
+  leaflet: typeof LeafletNS,
+  p: Province,
+  appearance: PinAppearance,
+  order: number,
+): DivIcon {
+  const tone = p.tone || '#0D5C46'
+  const classes = [
+    'pin',
+    appearance.done ? 'done' : 'open',
+    appearance.dense ? 'dense' : '',
+    appearance.flip ? 'flip' : '',
+    'transition-all duration-300 cursor-pointer',
+  ]
+    .filter(Boolean)
+    .join(' ')
+  const badge = appearance.done
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>'
+    : appearance.core
+      ? `<span>${order + 1}</span>`
+      : ''
+  return leaflet.divIcon({
+    className: `pin-anchor${appearance.dim ? ' pin-dim' : ''}`,
+    html:
+      `<button type="button" class="${classes}" style="--pin:${tone}">` +
+      `<span>${badge}</span>` +
+      `<b>${escapePinText(p.name)}</b>` +
+      '</button>',
+    iconSize: [0, 0],
+  })
 }
 
 const PROVINCE_HIGHLIGHTS: Record<
@@ -800,7 +862,10 @@ function SidebarPuraScene() {
           <rect x="82" y="119" width="8" height="5" fill="#784F32" />
 
           {/* Tier 9 */}
-          <path d="M74.5 120 Q86 114 97.5 120 L95 115 Q86 116 77 115 Z" fill="url(#nusaMeruGrad1)" />
+          <path
+            d="M74.5 120 Q86 114 97.5 120 L95 115 Q86 116 77 115 Z"
+            fill="url(#nusaMeruGrad1)"
+          />
           <rect x="83" y="110" width="6" height="5" fill="#784F32" />
 
           {/* Tier 10 */}
@@ -810,9 +875,25 @@ function SidebarPuraScene() {
           <path d="M79 102 Q86 97 93 102 L86 91 Z" fill="url(#nusaMeruGrad1)" />
 
           {/* Needle Spire & Golden Finial */}
-          <line x1="86" y1="72" x2="86" y2="92" stroke="#233935" strokeWidth="2" strokeLinecap="round" />
+          <line
+            x1="86"
+            y1="72"
+            x2="86"
+            y2="92"
+            stroke="#233935"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
           <circle cx="86" cy="85" r="2.5" fill="#F59E0B" />
-          <line x1="86" y1="62" x2="86" y2="72" stroke="#233935" strokeWidth="1.2" strokeLinecap="round" />
+          <line
+            x1="86"
+            y1="62"
+            x2="86"
+            y2="72"
+            stroke="#233935"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+          />
         </g>
 
         {/* Companion Small 3-Tier Shrine on the Left */}
@@ -821,27 +902,40 @@ function SidebarPuraScene() {
           <path d="M12 258 Q29 250 46 258 L42 251 Q29 253 16 251 Z" fill="#2B3F3B" />
           <path d="M15 251 Q29 244 43 251 L40 245 Q29 247 18 245 Z" fill="#364E4A" />
           <path d="M18 245 Q29 238 40 245 L29 233 Z" fill="#2B3F3B" />
-          <line x1="29" y1="225" x2="29" y2="233" stroke="#2B3F3B" strokeWidth="1.5" strokeLinecap="round" />
+          <line
+            x1="29"
+            y1="225"
+            x2="29"
+            y2="233"
+            stroke="#2B3F3B"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
         </g>
 
         {/* Foreground Lush Rolling Hills & Tropical Foliage */}
-        <path
-          d="M-20 400 L-20 295 Q45 280 110 315 Q185 345 280 305 L280 400 Z"
-          fill="#388D76"
-        />
-        <path
-          d="M-20 400 L-20 318 Q55 300 130 338 Q205 360 280 328 L280 400 Z"
-          fill="#226E58"
-        />
-        <path
-          d="M-20 400 L-20 345 Q45 330 100 365 Q170 388 280 355 L280 400 Z"
-          fill="#0D4836"
-        />
+        <path d="M-20 400 L-20 295 Q45 280 110 315 Q185 345 280 305 L280 400 Z" fill="#388D76" />
+        <path d="M-20 400 L-20 318 Q55 300 130 338 Q205 360 280 328 L280 400 Z" fill="#226E58" />
+        <path d="M-20 400 L-20 345 Q45 330 100 365 Q170 388 280 355 L280 400 Z" fill="#0D4836" />
 
         {/* Tropical Leaves Frame at Bottom-Left */}
         <g opacity="0.88">
-          <ellipse cx="14" cy="335" rx="22" ry="7.5" transform="rotate(-38 14 335)" fill="#54BA97" />
-          <ellipse cx="32" cy="350" rx="25" ry="8.5" transform="rotate(-20 32 350)" fill="#73CFA9" />
+          <ellipse
+            cx="14"
+            cy="335"
+            rx="22"
+            ry="7.5"
+            transform="rotate(-38 14 335)"
+            fill="#54BA97"
+          />
+          <ellipse
+            cx="32"
+            cy="350"
+            rx="25"
+            ry="8.5"
+            transform="rotate(-20 32 350)"
+            fill="#73CFA9"
+          />
           <ellipse cx="12" cy="368" rx="24" ry="8" transform="rotate(-10 12 368)" fill="#3C9E7D" />
           <ellipse cx="38" cy="382" rx="26" ry="9" transform="rotate(15 38 382)" fill="#54BA97" />
         </g>
@@ -886,6 +980,7 @@ export default function NusaDashboard({
   const [verdict, setVerdict] = useState<{ correct: boolean; explanation: string } | null>(null)
   const [checking, setChecking] = useState(false)
   const [bonusPoints, setBonusPoints] = useState(0)
+  const [timeLeft, setTimeLeft] = useState(10)
 
   const displayName = demoUser ? demoUser.name : alias
   const clearedCount = Object.keys(cleared).length
@@ -947,8 +1042,107 @@ export default function NusaDashboard({
     openProvinceById(pick, true)
   }
 
+  const mapHostRef = useRef<HTMLDivElement | null>(null)
+  const mapRef = useRef<LeafletMap | null>(null)
+  const leafletRef = useRef<typeof LeafletNS | null>(null)
+  const markersRef = useRef<Map<string, Marker>>(new Map())
+  const openProvinceRef = useRef(openProvinceById)
+  openProvinceRef.current = openProvinceById
+  const [mapReady, setMapReady] = useState(false)
+
+  const pinProvinces = useMemo(
+    () =>
+      provinces.filter(
+        (p): p is Province & { lat: number; lng: number } => p.lat != null && p.lng != null,
+      ),
+    [provinces],
+  )
+
+  // Interactive OpenStreetMap tiles with one Leaflet marker per province. Pins
+  // live inside the map's coordinate system, so panning and zooming never
+  // detaches them from the geography like the old iframe overlay did.
+  useEffect(() => {
+    let cancelled = false
+    let map: LeafletMap | null = null
+
+    async function init() {
+      // Leaflet reads `window` at module scope, so a static import would break
+      // SSR — this client component still renders on the server first.
+      const leaflet = await import('leaflet')
+      const host = mapHostRef.current
+      if (cancelled || !host) return
+
+      map = leaflet.map(host, {
+        attributionControl: false,
+        zoomControl: false,
+        minZoom: 4,
+        maxZoom: 12,
+      })
+      leaflet
+        .tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 12,
+          className: 'nusa-tiles',
+        })
+        .addTo(map)
+      leaflet.control.zoom({ position: 'topright' }).addTo(map)
+
+      const washPane = map.createPane('nusa-wash')
+      washPane.style.zIndex = '550'
+      washPane.style.pointerEvents = 'none'
+      washPane.classList.add('map-wash')
+
+      const markers = new Map<string, Marker>()
+      pinProvinces.forEach((p, index) => {
+        const appearance = pinAppearance(p, index, cleared, mapRegion, showExtraLabels)
+        const marker = leaflet.marker([p.lat, p.lng], {
+          icon: buildPinIcon(leaflet, p, appearance, index),
+          title: `${p.name} (${p.island})`,
+        })
+        marker.on('click', () => openProvinceRef.current(p.id))
+        marker.addTo(map!)
+        markers.set(p.id, marker)
+      })
+      markersRef.current = markers
+      leafletRef.current = leaflet
+      mapRef.current = map
+
+      if (pinProvinces.length) {
+        map.fitBounds(
+          leaflet.latLngBounds(pinProvinces.map((p) => [p.lat, p.lng] as [number, number])),
+          { padding: [28, 28] },
+        )
+      }
+      setMapReady(true)
+    }
+
+    init()
+
+    return () => {
+      cancelled = true
+      map?.remove()
+      mapRef.current = null
+      leafletRef.current = null
+      markersRef.current = new Map()
+      setMapReady(false)
+    }
+    // Mount once; the appearance sync below handles later prop changes.
+  }, [])
+
+  // Keep marker appearances (done, core, dense, flip, dimmed) in sync with UI
+  // state without recreating the map.
+  useEffect(() => {
+    const leaflet = leafletRef.current
+    if (!leaflet || !mapReady) return
+    pinProvinces.forEach((p, index) => {
+      const marker = markersRef.current.get(p.id)
+      if (!marker) return
+      const appearance = pinAppearance(p, index, cleared, mapRegion, showExtraLabels)
+      marker.setIcon(buildPinIcon(leaflet, p, appearance, index))
+    })
+  }, [mapReady, pinProvinces, cleared, showExtraLabels, mapRegion])
+
   async function handleSelectOption(question: QuizQuestion, optionIdx: number) {
-    if (checking || verdict?.correct) return
+    if (checking || verdict) return
     setSelectedChoice(optionIdx)
     setChecking(true)
     setVerdict(null)
@@ -1051,6 +1245,28 @@ export default function NusaDashboard({
   const activeCard: CultureCard | undefined = activeAdventure?.cards[cardIndex]
   const activeQuestion: QuizQuestion | undefined = activeAdventure?.questions[quizIndex]
 
+  // 10-second countdown per quiz question. Expiry locks the question and
+  // treats it as a wrong answer with no XP, so there is no time to look up
+  // answers elsewhere.
+  useEffect(() => {
+    if (modalStep !== 'quiz' || !activeQuestion || verdict || checking) return
+    setTimeLeft(10)
+    const timer = window.setInterval(() => {
+      setTimeLeft((t) => {
+        if (t <= 1) {
+          window.clearInterval(timer)
+          setVerdict({
+            correct: false,
+            explanation: '⏰ Waktu habis! Jawabanmu dianggap salah.',
+          })
+          return 0
+        }
+        return t - 1
+      })
+    }, 1000)
+    return () => window.clearInterval(timer)
+  }, [modalStep, activeQuestion, verdict, checking])
+
   return (
     <div className="nusa-dashboard min-h-screen flex flex-col lg:flex-row selection:bg-emerald-200 selection:text-emerald-900">
       {/* Toast Notification Container */}
@@ -1145,13 +1361,13 @@ export default function NusaDashboard({
                   onClick={() => switchTab(id)}
                   className={
                     isActive
-                      ? 'w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200 bg-gradient-to-r from-[#DCF2EA] to-[#EBF7F3] text-[#0D5C46] shadow-xs'
-                      : 'w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-semibold text-slate-600 hover:bg-emerald-50/70 hover:text-[#0D5C46] transition-all duration-200'
+                      ? 'w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200 bg-rose-50 text-[#E11D48]'
+                      : 'w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-semibold text-slate-600 hover:bg-rose-50/50 hover:text-[#E11D48] transition-all duration-200'
                   }
                 >
                   <LucideSvg
                     name={icon}
-                    className={`w-5 h-5 ${isActive ? 'text-[#0D5C46]' : ''}`}
+                    className={`w-5 h-5 ${isActive ? 'text-[#E11D48]' : ''}`}
                   />
                   <span>{label}</span>
                 </button>
@@ -1163,7 +1379,7 @@ export default function NusaDashboard({
           <button
             type="button"
             onClick={openDailyMissionQuiz}
-            className="w-full text-left mt-7 p-4 rounded-2xl bg-gradient-to-br from-[#FFF9E6] via-[#FEF3C7] to-[#FDE68A]/70 border border-amber-200/80 shadow-sm cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group"
+            className="w-full text-left mt-7 p-4 rounded-2xl bg-[#FEF3C7] border border-amber-200/80 cursor-pointer hover:bg-[#FDE68A]/70 hover:-translate-y-0.5 transition-all duration-200 group"
           >
             <div className="flex items-center gap-2.5 mb-2.5">
               <div className="w-7 h-7 rounded-full bg-amber-400 flex items-center justify-center text-white shadow-xs group-hover:scale-110 transition-transform">
@@ -1177,7 +1393,7 @@ export default function NusaDashboard({
 
             <div className="w-full h-2 bg-white/80 rounded-full overflow-hidden mb-2 p-0.5">
               <div
-                className="h-full bg-gradient-to-r from-orange-400 to-amber-500 rounded-full transition-all duration-500"
+                className="h-full bg-amber-500 rounded-full transition-all duration-500"
                 style={{ width: `${Math.max(dailyRatio * 100, dailyDone > 0 ? 33.33 : 6)}%` }}
               />
             </div>
@@ -1198,78 +1414,116 @@ export default function NusaDashboard({
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 min-w-0 p-4 sm:p-6 lg:px-8 xl:px-10 max-w-[1560px] mx-auto w-full space-y-6">
-        {/* TOP HEADER STATUS BAR (Desktop & Tablet) */}
-        <div className="flex flex-wrap items-center justify-end gap-2.5 sm:gap-3">
-          {/* Streak Badge */}
-          <div className="flex items-center gap-2.5 bg-white/90 px-3.5 py-2 rounded-2xl shadow-card border border-amber-100/80">
-            <div className="w-7 h-7 rounded-full bg-amber-50 flex items-center justify-center">
-              <LucideSvg name="flame" className="w-4 h-4 text-orange-500" filled />
+      <main className="flex-1 min-w-0 p-4 sm:p-5 lg:p-6 lg:px-8 xl:px-10 max-w-[1560px] mx-auto w-full space-y-6">
+        {/* TOP HEADER ROW: Left (Avatar & Greeting/Headline, sejajar dengan logo Tapak Nusa) & Right (Status Badges) */}
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 pt-1">
+          {activeTab === 'beranda' ? (
+            <div className="flex items-center gap-4 sm:gap-5">
+              {/* Circular User Avatar with Online Green Dot */}
+              <div className="relative w-16 h-16 sm:w-20 sm:h-20 shrink-0">
+                <div className="w-full h-full rounded-full p-1 bg-white shadow-soft">
+                  <img
+                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80"
+                    alt={`Foto profil ${displayName}`}
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                </div>
+                <span
+                  className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white shadow-xs"
+                  title="Online"
+                />
+              </div>
+
+              {/* Greeting & Headline */}
+              <div>
+                <p className="text-xs sm:text-sm font-semibold text-slate-500 mb-0.5">
+                  Selamat datang kembali{demoUser ? `, ${demoUser.name}` : ''}!
+                </p>
+                <h1 className="text-xl sm:text-2xl lg:text-[28px] font-extrabold text-[#0D5C46] tracking-tight leading-tight">
+                  {provinces.length} provinsi, {provinces.length} pintu perjalanan.
+                </h1>
+                <p className="text-justify text-xs sm:text-sm text-slate-500 mt-1 max-w-xl leading-relaxed hidden sm:block">
+                  Pilih provinsi mana pun, pelajari tiap pengantar budayanya, lalu uji pemahaman
+                  melalui kuis bergambar.
+                </p>
+              </div>
             </div>
-            <div className="leading-tight">
-              <span className="text-xs font-extrabold text-slate-800 block">
-                {streakDays} hari
-              </span>
-              <span className="text-[10px] font-medium text-slate-400 block">Api aktif</span>
+          ) : (
+            <div />
+          )}
+
+          {/* Status Badges on Right */}
+          <div className="flex flex-wrap items-center justify-end gap-2.5 sm:gap-3 shrink-0 self-start xl:self-center">
+            {/* Streak Badge */}
+            <div className="flex items-center gap-2.5 bg-white/90 px-3.5 py-2 rounded-2xl shadow-card border border-amber-100/80">
+              <div className="w-7 h-7 rounded-full bg-amber-50 flex items-center justify-center">
+                <LucideSvg name="flame" className="w-4 h-4 text-orange-500" filled />
+              </div>
+              <div className="leading-tight">
+                <span className="text-xs font-extrabold text-slate-800 block">
+                  {streakDays} hari
+                </span>
+                <span className="text-[10px] font-medium text-slate-400 block">Api aktif</span>
+              </div>
             </div>
+
+            {/* XP & Level Badge */}
+            <div className="flex items-center gap-2.5 bg-white/90 px-3.5 py-2 rounded-2xl shadow-card border border-emerald-100/80">
+              <div className="w-7 h-7 rounded-full bg-emerald-100/80 flex items-center justify-center">
+                <LucideSvg name="star" className="w-4 h-4 text-emerald-700" />
+              </div>
+              <div className="leading-tight">
+                <span className="text-xs font-extrabold text-slate-800 block">{xp} XP</span>
+                <span className="text-[10px] font-medium text-slate-400 block">
+                  Peringkat Lv. {level.level}
+                </span>
+              </div>
+            </div>
+
+            {/* Google Login / Switch Button */}
+            <button
+              type="button"
+              onClick={onOpenAuth}
+              className="hidden sm:flex items-center gap-2 bg-white hover:bg-slate-50 px-3.5 py-2 rounded-2xl shadow-card border border-slate-100 text-xs font-bold text-slate-700 transition cursor-pointer"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" aria-hidden>
+                <path
+                  fill="#4285F4"
+                  d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96z"
+                />
+              </svg>
+              <span>{demoUser ? demoUser.email.split('@')[0] : 'Masuk (Ganti)'}</span>
+            </button>
+
+            {/* User Initial Avatar */}
+            <button
+              type="button"
+              onClick={() => switchTab('profil')}
+              className="w-10 h-10 rounded-full bg-[#E11D48] text-white font-extrabold text-sm flex items-center justify-center hover:scale-105 transition cursor-pointer"
+              aria-label="Buka profil"
+            >
+              {displayName.slice(0, 1).toUpperCase()}
+            </button>
           </div>
-
-          {/* XP & Level Badge */}
-          <div className="flex items-center gap-2.5 bg-white/90 px-3.5 py-2 rounded-2xl shadow-card border border-emerald-100/80">
-            <div className="w-7 h-7 rounded-full bg-emerald-100/80 flex items-center justify-center">
-              <LucideSvg name="star" className="w-4 h-4 text-emerald-700" />
-            </div>
-            <div className="leading-tight">
-              <span className="text-xs font-extrabold text-slate-800 block">{xp} XP</span>
-              <span className="text-[10px] font-medium text-slate-400 block">
-                Peringkat Lv. {level.level}
-              </span>
-            </div>
-          </div>
-
-          {/* Google Login / Switch Button */}
-          <button
-            type="button"
-            onClick={onOpenAuth}
-            className="hidden sm:flex items-center gap-2 bg-white hover:bg-slate-50 px-3.5 py-2 rounded-2xl shadow-card border border-slate-100 text-xs font-bold text-slate-700 transition cursor-pointer"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" aria-hidden>
-              <path
-                fill="#4285F4"
-                d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
-              />
-              <path
-                fill="#34A853"
-                d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14z"
-              />
-              <path
-                fill="#EA4335"
-                d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96z"
-              />
-            </svg>
-            <span>{demoUser ? demoUser.email.split('@')[0] : 'Masuk (Ganti)'}</span>
-          </button>
-
-          {/* User Initial Avatar */}
-          <button
-            type="button"
-            onClick={() => switchTab('profil')}
-            className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-500 to-red-600 text-white font-extrabold text-sm flex items-center justify-center shadow-sm hover:scale-105 transition cursor-pointer"
-            aria-label="Buka profil"
-          >
-            {displayName.slice(0, 1).toUpperCase()}
-          </button>
         </div>
 
         {/* TAB 1: BERANDA (MAIN DASHBOARD) */}
         {activeTab === 'beranda' && (
           <div className="space-y-6">
             {/* HERO SECTION */}
-            <section className="relative lg:-mt-4">
+            <section className="relative">
               {/* Subtle Decorative Clover Watermark on Right */}
               <svg
                 className="hidden xl:block absolute right-6 top-2 w-28 h-28 text-emerald-200/40 pointer-events-none"
@@ -1282,37 +1536,6 @@ export default function NusaDashboard({
                 <circle cx="35" cy="65" r="22" />
                 <circle cx="65" cy="65" r="22" />
               </svg>
-
-              <div className="flex flex-col md:flex-row md:items-center gap-5 mb-6">
-                {/* Circular User Avatar with Online Green Dot */}
-                <div className="relative w-20 h-20 sm:w-24 sm:h-24 shrink-0">
-                  <div className="w-full h-full rounded-full p-1 bg-white shadow-soft">
-                    <img
-                      src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80"
-                      alt={`Foto profil ${displayName}`}
-                      className="w-full h-full object-cover rounded-full"
-                    />
-                  </div>
-                  <span
-                    className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white shadow-xs"
-                    title="Online"
-                  />
-                </div>
-
-                {/* Greeting & Headline */}
-                <div>
-                  <p className="text-xs sm:text-sm font-semibold text-slate-500 mb-1">
-                    Selamat datang kembali{demoUser ? `, ${demoUser.name}` : ''}!
-                  </p>
-                  <h1 className="text-2xl sm:text-3xl lg:text-[32px] font-extrabold text-[#0D5C46] tracking-tight leading-tight">
-                    {provinces.length} provinsi, {provinces.length} pintu perjalanan.
-                  </h1>
-                  <p className="text-xs sm:text-sm text-slate-500 mt-1.5 max-w-xl leading-relaxed">
-                    Pilih provinsi mana pun, pelajari tiap pengantar budayanya, lalu uji pemahaman
-                    melalui kuis bergambar.
-                  </p>
-                </div>
-              </div>
 
               {/* 4 STAT CARDS + PRIMARY CTA ROW */}
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3.5 items-stretch">
@@ -1390,7 +1613,7 @@ export default function NusaDashboard({
                   <button
                     type="button"
                     onClick={() => openProvinceById('aceh')}
-                    className="w-full h-full min-h-[56px] bg-gradient-to-r from-[#0D5C46] to-[#117257] hover:from-[#094333] hover:to-[#0D5C46] text-white font-bold text-sm px-6 py-3.5 rounded-full shadow-float flex items-center justify-center gap-2.5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                    className="w-full h-full min-h-[56px] bg-[#E11D48] hover:bg-[#BE123C] text-white font-bold text-sm px-6 py-3.5 rounded-full flex items-center justify-center gap-2.5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
                   >
                     <span>Lanjut Belajar</span>
                     <LucideSvg name="arrow-right" className="w-4 h-4" />
@@ -1433,7 +1656,7 @@ export default function NusaDashboard({
                         onClick={() => handleSelectRegion(reg)}
                         className={
                           mapRegion === reg
-                            ? 'px-4 py-1.5 rounded-full text-xs font-bold bg-[#0D5C46] text-white shadow-xs transition cursor-pointer'
+                            ? 'px-4 py-1.5 rounded-full text-xs font-bold bg-[#E11D48] text-white transition cursor-pointer'
                             : 'px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 hover:bg-white transition cursor-pointer'
                         }
                       >
@@ -1454,7 +1677,7 @@ export default function NusaDashboard({
                     title="Tampilkan/Sembunyikan Semua Label"
                     className={`w-8 h-8 rounded-full border flex items-center justify-center transition cursor-pointer ${
                       showExtraLabels
-                        ? 'border-[#0D5C46] bg-emerald-50 text-[#0D5C46]'
+                        ? 'border-[#E11D48] bg-rose-50 text-[#E11D48]'
                         : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                     }`}
                   >
@@ -1463,69 +1686,17 @@ export default function NusaDashboard({
                 </div>
               </div>
 
-              {/* Interactive OpenStreetMap Container with all 38 province pins */}
+              {/* Interactive OpenStreetMap container; province pins are Leaflet
+                  markers bound to real coordinates, so they stay anchored while
+                  panning and zooming. */}
               <div className="map-card relative w-full h-[400px] sm:h-[460px] lg:h-[500px] xl:h-[520px] rounded-3xl overflow-hidden border border-emerald-100 shadow-inner">
-                {/* 1. OpenStreetMap Iframe Layer */}
-                <iframe
-                  className="osm-map"
-                  title="Peta OpenStreetMap Indonesia"
-                  src="https://www.openstreetmap.org/export/embed.html?bbox=94%2C-12%2C142%2C8&layer=mapnik"
-                  loading="lazy"
-                  referrerPolicy="strict-origin-when-cross-origin"
+                <div
+                  ref={mapHostRef}
+                  className="map-canvas absolute inset-0"
+                  aria-label="Peta interaktif budaya Indonesia"
                 />
 
-                {/* 2. Soft Emerald/Teal Tint Wash Overlay */}
-                <div className="map-wash" aria-hidden />
-
-                {/* 3. Floating Title Card */}
-                <div className="map-title hidden sm:grid">
-                  <small>PETA EKSPLORASI</small>
-                  <strong>Indonesia</strong>
-                  <span>Geser dan perbesar peta untuk menjelajah</span>
-                </div>
-
-                {/* 4. All 38 Province Pins on OpenStreetMap Coordinates */}
-                {provinces.map((p, i) => {
-                  const reg = regionForProvince(p.id)
-                  const isDimmed = mapRegion !== 'all' && mapRegion !== reg
-                  const isDone = cleared[p.id] !== undefined
-                  const isCore = i < 5
-                  const isDense = !isCore && !showExtraLabels
-                  const isFlip = p.x > 75
-
-                  return (
-                    <button
-                      key={p.id}
-                      type="button"
-                      data-province={p.id}
-                      onClick={() => openProvinceById(p.id)}
-                      className={`pin ${isDone ? 'done' : 'open'} ${isDense ? 'dense' : ''} ${isFlip ? 'flip' : ''} transition-all duration-300 cursor-pointer`}
-                      style={
-                        {
-                          left: `${p.x}%`,
-                          top: `${p.y}%`,
-                          '--pin': p.tone || '#0D5C46',
-                          opacity: isDimmed ? 0.22 : 1,
-                          transform: `translate(-50%, -50%) ${isDimmed ? 'scale(0.85)' : 'scale(1)'}`,
-                          pointerEvents: isDimmed ? 'none' : 'auto',
-                        } as React.CSSProperties
-                      }
-                      aria-label={`${p.name}, ${isDone ? 'Selesai' : 'Terbuka'}`}
-                      title={`${p.name} (${p.island})`}
-                    >
-                      <span>
-                        {isDone ? (
-                          <LucideSvg name="check" className="w-3.5 h-3.5" />
-                        ) : isCore ? (
-                          <span className="text-[11px] font-extrabold">{i + 1}</span>
-                        ) : null}
-                      </span>
-                      <b>{p.name}</b>
-                    </button>
-                  )
-                })}
-
-                {/* 5. Map Legend (Selesai, Terbuka, 38 provinsi aktif) */}
+                {/* Map Legend (Selesai, Terbuka, provinsi aktif) */}
                 <div className="map-legend">
                   <span>
                     <i className="lg done" />
@@ -1570,7 +1741,7 @@ export default function NusaDashboard({
                     <button
                       type="button"
                       onClick={() => switchTab('koleksi')}
-                      className="text-xs font-bold text-[#0D5C46] hover:underline flex items-center gap-1 cursor-pointer"
+                      className="text-xs font-bold text-[#E11D48] hover:underline flex items-center gap-1 cursor-pointer"
                     >
                       <span>Lihat Semua</span>
                       <LucideSvg name="arrow-right" className="w-3.5 h-3.5" />
@@ -1583,9 +1754,9 @@ export default function NusaDashboard({
                         key={item.id}
                         type="button"
                         onClick={() => openProvinceById(item.id)}
-                        className="w-full flex items-center gap-3 p-2 rounded-2xl hover:bg-emerald-50/60 cursor-pointer transition group text-left"
+                        className="w-full flex items-center gap-3 p-2 rounded-2xl hover:bg-rose-50/60 cursor-pointer transition group text-left"
                       >
-                        <span className="w-6 h-6 rounded-full bg-emerald-50 text-[#0D5C46] font-extrabold text-xs flex items-center justify-center shrink-0">
+                        <span className="w-6 h-6 rounded-full bg-rose-50 text-[#E11D48] font-extrabold text-xs flex items-center justify-center shrink-0">
                           {item.rank}.
                         </span>
                         <img
@@ -1594,12 +1765,12 @@ export default function NusaDashboard({
                           className="w-12 h-8 rounded-full object-cover shrink-0 shadow-xs"
                         />
                         <div className="flex-1 min-w-0">
-                          <span className="text-xs sm:text-sm font-bold text-slate-800 group-hover:text-[#0D5C46] truncate block mb-1.5">
+                          <span className="text-xs sm:text-sm font-bold text-slate-800 group-hover:text-[#E11D48] truncate block mb-1.5">
                             {item.name}
                           </span>
                           <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                             <div
-                              className="h-full bg-gradient-to-r from-[#0D5C46] to-[#14B8A6] rounded-full"
+                              className="h-full bg-[#0D5C46] rounded-full"
                               style={{ width: `${item.pct}%` }}
                             />
                           </div>
@@ -1773,10 +1944,7 @@ export default function NusaDashboard({
                   <div className="hidden sm:block w-32 h-20 rounded-2xl overflow-hidden shrink-0 relative bg-[#CBE7E2]">
                     <svg viewBox="0 0 160 100" className="w-full h-full object-cover" aria-hidden>
                       <rect width="160" height="100" fill="#D8EFEA" />
-                      <path
-                        d="M0 64 Q45 44 95 58 T160 52 L160 100 L0 100 Z"
-                        fill="#9AD3C8"
-                      />
+                      <path d="M0 64 Q45 44 95 58 T160 52 L160 100 L0 100 Z" fill="#9AD3C8" />
                       <g transform="translate(42, 8)">
                         <rect x="14" y="64" width="32" height="12" fill="#2D4A46" />
                         <path d="M8 64 L30 55 L52 64 Z" fill="#1E3532" />
@@ -1791,10 +1959,7 @@ export default function NusaDashboard({
                         <path d="M2 40 L14 34 L26 40 Z" fill="#1E3532" />
                         <path d="M5 34 L14 28 L23 34 Z" fill="#253F3C" />
                       </g>
-                      <path
-                        d="M0 100 L0 74 Q42 68 78 88 L160 82 L160 100 Z"
-                        fill="#2A7560"
-                      />
+                      <path d="M0 100 L0 74 Q42 68 78 88 L160 82 L160 100 Z" fill="#2A7560" />
                     </svg>
                   </div>
 
@@ -1821,7 +1986,7 @@ export default function NusaDashboard({
                 <button
                   type="button"
                   onClick={() => switchTab('profil')}
-                  className="w-full md:w-auto shrink-0 bg-[#0D5C46] hover:bg-[#094333] text-white font-bold text-xs sm:text-sm px-6 py-3 rounded-full shadow-md flex items-center justify-center gap-2 transition hover:scale-[1.02] cursor-pointer"
+                  className="w-full md:w-auto shrink-0 bg-[#E11D48] hover:bg-[#BE123C] text-white font-bold text-xs sm:text-sm px-6 py-3 rounded-full flex items-center justify-center gap-2 transition hover:scale-[1.02] cursor-pointer"
                 >
                   <span>Lihat Pencapaian</span>
                   <LucideSvg name="arrow-right" className="w-4 h-4" />
@@ -1861,7 +2026,7 @@ export default function NusaDashboard({
                         onClick={() => setKoleksiRegion(reg)}
                         className={
                           koleksiRegion === reg
-                            ? 'px-3 py-1 rounded-full text-xs font-bold bg-[#0D5C46] text-white'
+                            ? 'px-3 py-1 rounded-full text-xs font-bold bg-[#E11D48] text-white'
                             : 'px-3 py-1 rounded-full text-xs font-semibold text-slate-600 hover:bg-white'
                         }
                       >
@@ -2018,7 +2183,7 @@ export default function NusaDashboard({
                 <button
                   type="button"
                   onClick={onOpenAuth}
-                  className="px-4 py-2.5 rounded-full border border-emerald-200 bg-emerald-50/60 hover:bg-emerald-100 text-[#0D5C46] text-xs font-extrabold transition cursor-pointer shrink-0"
+                  className="px-4 py-2.5 rounded-full border border-rose-200 bg-rose-50/70 hover:bg-rose-100 text-[#E11D48] text-xs font-extrabold transition cursor-pointer shrink-0"
                 >
                   {demoUser ? 'Kelola Akun' : 'Hubungkan Gmail'}
                 </button>
@@ -2119,7 +2284,7 @@ export default function NusaDashboard({
                           type="button"
                           onClick={() => setCardIndex(idx)}
                           className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                            idx === cardIndex ? 'w-6 bg-[#0D5C46]' : 'w-2 bg-slate-200'
+                            idx === cardIndex ? 'w-6 bg-[#E11D48]' : 'w-2 bg-slate-200'
                           }`}
                           aria-label={`Materi ${idx + 1}: ${c.title}`}
                         />
@@ -2129,7 +2294,7 @@ export default function NusaDashboard({
 
                   {activeCard && (
                     <div className="mb-4">
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-rose-600">
                         {activeCard.label}
                       </span>
                       <h4 className="text-base font-extrabold text-slate-800 mt-0.5 mb-1.5">
@@ -2148,7 +2313,7 @@ export default function NusaDashboard({
                         onClick={() => setCardIndex(idx)}
                         className={`p-3 rounded-2xl border text-left transition cursor-pointer ${
                           cardIndex === idx
-                            ? 'bg-emerald-50/70 border-emerald-200'
+                            ? 'bg-rose-50/70 border-rose-200'
                             : 'bg-slate-50 border-slate-100 hover:bg-slate-100/70'
                         }`}
                       >
@@ -2167,7 +2332,7 @@ export default function NusaDashboard({
                       <button
                         type="button"
                         onClick={() => setCardIndex((i) => i + 1)}
-                        className="px-5 py-2.5 rounded-full text-xs font-bold text-[#0D5C46] bg-emerald-50 hover:bg-emerald-100 transition cursor-pointer"
+                        className="px-5 py-2.5 rounded-full text-xs font-bold text-[#E11D48] bg-rose-50 hover:bg-rose-100 transition cursor-pointer"
                       >
                         Cerita Berikutnya →
                       </button>
@@ -2189,7 +2354,7 @@ export default function NusaDashboard({
                         setSelectedChoice(null)
                         setVerdict(null)
                       }}
-                      className="flex-1 bg-gradient-to-r from-[#0D5C46] to-[#117257] hover:from-[#094333] hover:to-[#0D5C46] text-white font-bold text-xs sm:text-sm px-6 py-3 rounded-full shadow-md flex items-center justify-center gap-2 transition cursor-pointer"
+                      className="flex-1 bg-[#E11D48] hover:bg-[#BE123C] text-white font-bold text-xs sm:text-sm px-6 py-3 rounded-full flex items-center justify-center gap-2 transition cursor-pointer"
                     >
                       <LucideSvg name="help-circle" className="w-4 h-4" />
                       <span>Uji Pemahaman (Kuis +15 XP)</span>
@@ -2202,12 +2367,55 @@ export default function NusaDashboard({
                     <span className="text-xs font-extrabold text-amber-600 bg-amber-50 px-3 py-1 rounded-full">
                       Kuis Budaya Bergambar ({quizIndex + 1}/{activeAdventure.questions.length})
                     </span>
-                    <span className="text-xs font-bold text-slate-400">+15 XP & +25 Poin</span>
+                    <span className="flex items-center gap-3">
+                      <span className="text-xs font-bold text-slate-400">+15 XP & +25 Poin</span>
+                      <span
+                        className="relative w-11 h-11 shrink-0"
+                        title={`${timeLeft} detik tersisa`}
+                        aria-label={`Waktu tersisa ${timeLeft} detik`}
+                      >
+                        <svg viewBox="0 0 44 44" className="w-11 h-11 -rotate-90">
+                          <circle
+                            cx="22"
+                            cy="22"
+                            r="18"
+                            fill="none"
+                            stroke="#E2E8F0"
+                            strokeWidth="5"
+                          />
+                          <circle
+                            cx="22"
+                            cy="22"
+                            r="18"
+                            fill="none"
+                            stroke={
+                              timeLeft > 5 ? '#10B981' : timeLeft > 2 ? '#F59E0B' : '#E11D48'
+                            }
+                            strokeWidth="5"
+                            strokeLinecap="round"
+                            strokeDasharray={2 * Math.PI * 18}
+                            strokeDashoffset={2 * Math.PI * 18 * (1 - timeLeft / 10)}
+                            style={{ transition: 'stroke-dashoffset 1s linear, stroke 0.3s ease' }}
+                          />
+                        </svg>
+                        <b className="absolute inset-0 flex items-center justify-center text-sm font-extrabold text-slate-700">
+                          {timeLeft}
+                        </b>
+                      </span>
+                    </span>
                   </div>
 
                   <h4 className="text-sm sm:text-base font-extrabold text-slate-800 mb-4">
                     {activeQuestion.q}
                   </h4>
+
+                  <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-700">
+                    <LucideSvg name="lock" className="w-4 h-4 shrink-0" />
+                    <span className="text-[11px] font-bold leading-snug">
+                      Dilarang menggunakan AI atau mencari jawaban dari sumber lain selama kuis
+                      berlangsung.
+                    </span>
+                  </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                     {activeQuestion.options.map((opt, idx) => {
@@ -2217,14 +2425,17 @@ export default function NusaDashboard({
                           ? verdict.correct
                             ? 'border-emerald-500 bg-emerald-50 text-emerald-900'
                             : 'border-rose-400 bg-rose-50 text-rose-800'
-                          : 'border-slate-100 hover:border-[#0D5C46] bg-slate-50/70 hover:bg-emerald-50/50 text-slate-700'
+                          : 'border-slate-100 hover:border-[#E11D48] bg-slate-50/70 hover:bg-rose-50/50 text-slate-700'
 
                       return (
                         <button
                           key={opt}
                           type="button"
                           onClick={() => void handleSelectOption(activeQuestion, idx)}
-                          className={`p-3.5 rounded-2xl border-2 text-left text-xs sm:text-sm font-bold transition flex items-center gap-2.5 cursor-pointer ${stateClass}`}
+                          disabled={Boolean(verdict) || checking}
+                          className={`p-3.5 rounded-2xl border-2 text-left text-xs sm:text-sm font-bold transition flex items-center gap-2.5 ${
+                            verdict ? 'cursor-default' : 'cursor-pointer'
+                          } disabled:opacity-70 ${stateClass}`}
                         >
                           <span className="w-6 h-6 rounded-full bg-white border border-slate-200 flex items-center justify-center text-xs font-extrabold text-slate-500 shrink-0">
                             {String.fromCharCode(65 + idx)}
@@ -2253,31 +2464,29 @@ export default function NusaDashboard({
                         {verdict.correct ? '🎉 Tepat sekali! ' : ''}
                         {verdict.explanation}
                       </span>
-                      {verdict.correct && (
-                        <div className="flex items-center gap-2 shrink-0">
-                          {quizIndex < activeAdventure.questions.length - 1 ? (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setQuizIndex((i) => i + 1)
-                                setSelectedChoice(null)
-                                setVerdict(null)
-                              }}
-                              className="px-3.5 py-1.5 rounded-full bg-[#0D5C46] text-white cursor-pointer"
-                            >
-                              Soal Berikutnya →
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={closeProvinceModal}
-                              className="px-3.5 py-1.5 rounded-full bg-[#0D5C46] text-white cursor-pointer"
-                            >
-                              Selesai
-                            </button>
-                          )}
-                        </div>
-                      )}
+                      <div className="flex items-center gap-2 shrink-0">
+                        {quizIndex < activeAdventure.questions.length - 1 ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setQuizIndex((i) => i + 1)
+                              setSelectedChoice(null)
+                              setVerdict(null)
+                            }}
+                            className="px-4 py-2 rounded-full bg-[#E11D48] hover:bg-[#BE123C] text-white cursor-pointer font-bold transition"
+                          >
+                            Soal Berikutnya →
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={closeProvinceModal}
+                            className="px-4 py-2 rounded-full bg-[#E11D48] hover:bg-[#BE123C] text-white cursor-pointer font-bold transition"
+                          >
+                            Selesai
+                          </button>
+                        )}
+                      </div>
                     </div>
                   )}
 
@@ -2285,7 +2494,7 @@ export default function NusaDashboard({
                     <button
                       type="button"
                       onClick={() => setModalStep('story')}
-                      className="text-xs font-bold text-slate-500 hover:text-[#0D5C46] cursor-pointer"
+                      className="text-xs font-bold text-slate-500 hover:text-[#E11D48] cursor-pointer transition"
                     >
                       ← Kembali ke Pengantar Budaya
                     </button>

@@ -498,8 +498,8 @@ export const provinces = sqliteTable(
     region: text('region', {
       enum: ['sumatra', 'java', 'kalimantan', 'sulawesi', 'nusa', 'maluku', 'papua'],
     }).notNull(),
-    mapX: numeric('map_x', { mode: 'number' }).notNull(),
-    mapY: numeric('map_y', { mode: 'number' }).notNull(),
+    latitude: numeric('latitude', { mode: 'number' }),
+    longitude: numeric('longitude', { mode: 'number' }),
     tone: text('tone').notNull(),
     status: text('status', { enum: ['done', 'open', 'locked'] })
       .notNull()
@@ -561,8 +561,8 @@ export const _provinces_v = sqliteTable(
     version_region: text('version_region', {
       enum: ['sumatra', 'java', 'kalimantan', 'sulawesi', 'nusa', 'maluku', 'papua'],
     }).notNull(),
-    version_mapX: numeric('version_map_x', { mode: 'number' }).notNull(),
-    version_mapY: numeric('version_map_y', { mode: 'number' }).notNull(),
+    version_latitude: numeric('version_latitude', { mode: 'number' }),
+    version_longitude: numeric('version_longitude', { mode: 'number' }),
     version_tone: text('version_tone').notNull(),
     version_status: text('version_status', { enum: ['done', 'open', 'locked'] })
       .notNull()

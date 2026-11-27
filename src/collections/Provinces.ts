@@ -40,31 +40,25 @@ export const Provinces: CollectionConfig = {
       name: 'region',
       type: 'select',
       required: true,
-      options: [
-        'sumatra',
-        'java',
-        'kalimantan',
-        'sulawesi',
-        'nusa',
-        'maluku',
-        'papua',
-      ],
+      options: ['sumatra', 'java', 'kalimantan', 'sulawesi', 'nusa', 'maluku', 'papua'],
     },
     {
-      name: 'mapX',
-      label: 'Map X (%)',
+      name: 'latitude',
+      label: 'Latitude',
       type: 'number',
-      required: true,
-      min: 0,
-      max: 100,
+      admin: {
+        description:
+          'Pin position on the interactive map (WGS84 decimal degrees, e.g. the provincial capital).',
+      },
     },
     {
-      name: 'mapY',
-      label: 'Map Y (%)',
+      name: 'longitude',
+      label: 'Longitude',
       type: 'number',
-      required: true,
-      min: 0,
-      max: 100,
+      admin: {
+        description:
+          'Pin position on the interactive map (WGS84 decimal degrees, e.g. the provincial capital).',
+      },
     },
     {
       name: 'tone',

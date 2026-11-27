@@ -29,6 +29,8 @@
     "@payloadcms/ui": "4.0.0-beta.7",
     "graphql": "^16.8.1",
     "html-react-parser": "^5.2.10",
+    "leaflet": "^1.9.4",
+    "liquid-gooey": "^0.2.2",
     "monaco-editor": "0.55.1",
     "next": "16.4.6",
     "payload": "4.0.0-beta.7",
@@ -40,6 +42,7 @@
   "devDependencies": {
     "@opennextjs/cloudflare": "1.20.17",
     "@tailwindcss/postcss": "^4.0.0",
+    "@types/leaflet": "^1.9.23",
     "@types/node": "24.12.3",
     "@types/qrcode": "^1.5.6",
     "@types/react": "19.3.0",

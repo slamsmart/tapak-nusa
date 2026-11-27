@@ -15,8 +15,8 @@ export type SiteProvince = {
   id: string
   name: string
   island: string
-  x: number
-  y: number
+  lat: number | null
+  lng: number | null
   tone: string
 }
 
@@ -61,14 +61,16 @@ type PopulatedMedia = number | Media | null | undefined
  * A handful of retries with short backoff absorbs the blip instead of surfacing
  * a 500 to the visitor.
  */
-const TRANSIENT_PATTERN = /ECONNRESET|ECONNREFUSED|ETIMEDOUT|socket hang up|fetch failed|terminated|aborted/i
+const TRANSIENT_PATTERN =
+  /ECONNRESET|ECONNREFUSED|ETIMEDOUT|socket hang up|fetch failed|terminated|aborted/i
 
 async function findWithRetry<T>(operation: () => Promise<T>): Promise<T> {
   for (let attempt = 1; ; attempt += 1) {
     try {
       return await operation()
     } catch (error) {
-      const causeChain = error instanceof Error ? String(error.cause ?? error.message) : String(error)
+      const causeChain =
+        error instanceof Error ? String(error.cause ?? error.message) : String(error)
       const transient = TRANSIENT_PATTERN.test(causeChain)
       if (attempt >= 3 || !transient) throw error
       // Promise.withResolvers needs lib es2024; this repo targets a lower lib.
@@ -82,17 +84,25 @@ export async function loadSiteContent(): Promise<SiteContent> {
 
   // Ordered globally; grouping below preserves each province's own order.
   const [provinceResult, cardResult, questionResult] = await Promise.all([
-    findWithRetry(() => payload.find({ collection: 'provinces', sort: 'order', depth: 0, pagination: false })),
-    findWithRetry(() => payload.find({ collection: 'culture-cards', sort: 'order', depth: 1, pagination: false })),
-    findWithRetry(() => payload.find({ collection: 'quiz-questions', sort: 'order', depth: 1, pagination: false })),
+    findWithRetry(() =>
+      payload.find({ collection: 'provinces', sort: 'order', depth: 0, pagination: false }),
+    ),
+    findWithRetry(() =>
+      payload.find({ collection: 'culture-cards', sort: 'order', depth: 1, pagination: false }),
+    ),
+    findWithRetry(() =>
+      payload.find({ collection: 'quiz-questions', sort: 'order', depth: 1, pagination: false }),
+    ),
   ])
 
+  // Pins are placed by Leaflet from real WGS84 coordinates; provinces without
+  // coordinates yet have no place on the map.
   const provinces: SiteProvince[] = provinceResult.docs.map((doc) => ({
     id: doc.slug,
     name: doc.name,
     island: doc.island,
-    x: doc.mapX,
-    y: doc.mapY,
+    lat: doc.latitude ?? null,
+    lng: doc.longitude ?? null,
     tone: doc.tone,
   }))
 
@@ -103,7 +113,8 @@ export async function loadSiteContent(): Promise<SiteContent> {
 
   for (const card of cardResult.docs) {
     const province: PopulatedProvince = card.province
-    const adventure = province && typeof province === 'object' ? adventures[province.slug] : undefined
+    const adventure =
+      province && typeof province === 'object' ? adventures[province.slug] : undefined
     if (!adventure) continue
     const image: PopulatedMedia = card.image
     const media = image && typeof image === 'object' ? image : null
@@ -120,7 +131,8 @@ export async function loadSiteContent(): Promise<SiteContent> {
 
   for (const question of questionResult.docs) {
     const province: PopulatedProvince = question.province
-    const adventure = province && typeof province === 'object' ? adventures[province.slug] : undefined
+    const adventure =
+      province && typeof province === 'object' ? adventures[province.slug] : undefined
     if (!adventure) continue
     const image: PopulatedMedia = question.image
     const media = image && typeof image === 'object' ? image : null
