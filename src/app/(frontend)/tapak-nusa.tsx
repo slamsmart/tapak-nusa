@@ -12,6 +12,7 @@ import type {
   SiteQuestion as QuizQuestion,
 } from '@/lib/content'
 import { premiumPlans, type PremiumPlan } from '@/lib/premium'
+import { playQuizSound } from '@/lib/quiz-audio'
 import NusaDashboard, { type DashboardTab } from './nusa-dashboard'
 
 declare global {
@@ -1051,7 +1052,9 @@ export default function TapakNusa({ content }: { content: SiteContent }) {
         error?: string
       }
       if (!response.ok) throw new Error(data.error ?? 'Gagal memeriksa jawaban.')
-      setVerdict({ correct: Boolean(data.correct), explanation: data.explanation ?? '' })
+      const isCorrect = Boolean(data.correct)
+      setVerdict({ correct: isCorrect, explanation: data.explanation ?? '' })
+      playQuizSound(isCorrect)
     } catch {
       setChoice(null)
       setCheckError('Jawaban belum bisa diperiksa. Periksa koneksi lalu coba lagi.')

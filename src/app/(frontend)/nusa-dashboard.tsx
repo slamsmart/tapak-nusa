@@ -11,6 +11,7 @@ import type {
   SiteProvince as Province,
   SiteQuestion as QuizQuestion,
 } from '@/lib/content'
+import { playQuizSound } from '@/lib/quiz-audio'
 
 export type DashboardTab = 'beranda' | 'koleksi' | 'peringkat' | 'profil'
 type MapRegion = 'all' | 'barat' | 'tengah' | 'timur'
@@ -1166,6 +1167,7 @@ export default function NusaDashboard({
             ? 'Jawabanmu tepat! Terus jelajahi kekayaan budaya Nusantara.'
             : 'Belum tepat, coba amati kembali petunjuk gambar dan konteks budayanya.'),
       })
+      playQuizSound(isCorrect)
       if (isCorrect && selectedProvince) {
         setBonusPoints((p) => p + 25)
         onCompleteQuizQuestion(selectedProvince.id, true)
@@ -1351,8 +1353,8 @@ export default function NusaDashboard({
             aria-label="Menu Dashboard"
             blur={3}
             contrast={16}
-            fill="rgba(255, 255, 255, 0.45)"
-            shadow="0 12px 26px -14px rgba(13, 92, 70, 0.45)"
+            fill="rgba(255, 255, 255, 0.6)"
+            shadow="0 8px 20px -8px rgba(13, 92, 70, 0.45)"
           >
             {(
               [
@@ -1552,10 +1554,10 @@ export default function NusaDashboard({
                   into its neighbour like liquid. */}
               <Liquid
                 className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3.5 items-stretch"
-                blur={5}
+                blur={6}
                 contrast={16}
-                fill="rgba(255, 255, 255, 0.62)"
-                shadow="0 12px 26px -12px rgba(13, 92, 70, 0.45)"
+                fill="rgba(255, 255, 255, 0.72)"
+                shadow="0 10px 24px -8px rgba(13, 92, 70, 0.5)"
                 filterPadding={36}
               >
                 {/* Stat 1: Provinsi */}
