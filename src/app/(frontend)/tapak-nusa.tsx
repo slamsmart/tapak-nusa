@@ -245,7 +245,7 @@ function SupportBadge() {
   )
 }
 
-type LandingNavItem = 'explore' | 'culture' | 'stories' | 'map' | 'about'
+type LandingNavItem = 'explore' | 'culture' | 'stories' | 'map' | 'premium' | 'about'
 
 function LandingNav({
   active,
@@ -503,6 +503,7 @@ function AboutLanding({
   onCollection,
   onCulture,
   onStories,
+  onMap,
   onPremium,
 }: {
   authModal: React.ReactNode
@@ -624,6 +625,7 @@ function PublicDiscoveryLanding({
   pricingModal,
   onBack,
   onDashboard,
+  onMap,
   onExplore,
   onCulture,
   onStories,
@@ -636,6 +638,7 @@ function PublicDiscoveryLanding({
   pricingModal: React.ReactNode
   onBack: () => void
   onDashboard: () => void
+  onMap: () => void
   onExplore: () => void
   onCulture: () => void
   onStories: () => void
@@ -686,7 +689,7 @@ function PublicDiscoveryLanding({
           onExplore={onExplore}
           onCulture={onCulture}
           onStories={onStories}
-          onMap={onDashboard}
+          onMap={onMap}
           onPremium={onPremium}
           onAbout={onAbout}
         />
@@ -1117,7 +1120,9 @@ export default function TapakNusa({ content }: { content: SiteContent }) {
         onDashboard={() => enterView(publicPage === 'stories' ? 'collection' : 'map')}
         onExplore={() => enterView('map')}
         onCulture={() => setPublicPage('culture')}
+        onPremium={() => setPricingOpen(true)}
         onStories={() => setPublicPage('stories')}
+        onMap={() => setPublicPage('map')}
         onAbout={() => {
           setPublicPage(null)
           setShowAbout(true)

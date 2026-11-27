@@ -2301,9 +2301,23 @@ input:focus-visible {
   justify-content: space-between;
 }
 .about-navrow {
+  --home-red: #df2029;
   width: min(1180px, calc(100% - 40px));
   margin: 0 auto;
   padding: 14px 0 0;
+}
+@media (max-width: 900px) {
+  .about-navrow {
+    padding: 0;
+  }
+  .about-landing,
+  .public-discovery {
+    padding-bottom: 132px;
+  }
+  .about-landing .support-badge,
+  .public-discovery .support-badge {
+    bottom: 96px;
+  }
 }
 .about-logo,
 .about-back {
@@ -4815,6 +4829,16 @@ body:has(.nusa-dashboard) .pwa-install {
 }
 .nusa-dashboard .shadow-float {
   box-shadow: 0 12px 28px -4px rgba(13, 92, 70, 0.14);
+}
+/* Liquid glass surface: frosted backdrop over the dashboard's own tint, with a
+   hairline highlight so panels and boxes read as one glass material. Background
+   stays a Tailwind utility (solid tint); this rule owns the glass half. */
+.nusa-dashboard .glass {
+  backdrop-filter: blur(18px) saturate(1.45);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 18px 44px -26px rgba(13, 92, 70, 0.38);
 }
 .nusa-dashboard .map-ocean {
   background: radial-gradient(circle at 35% 40%, #cbe8ec 0%, #a9d6de 48%, #8ac3ce 100%);

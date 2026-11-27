@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { Liquid } from 'liquid-gooey'
 import 'leaflet/dist/leaflet.css'
 import type * as LeafletNS from 'leaflet'
 import type { DivIcon, Map as LeafletMap, Marker } from 'leaflet'
@@ -1318,7 +1319,7 @@ export default function NusaDashboard({
 
       {/* LEFT SIDEBAR */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-b from-white via-[#F9FCFA] to-[#E6F2EE] border-r border-emerald-100/80 flex flex-col justify-between transform ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 glass bg-white/70 flex flex-col justify-between transform ${
           mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         } lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen transition-transform duration-300 ease-in-out overflow-hidden shrink-0`}
       >
@@ -1344,7 +1345,15 @@ export default function NusaDashboard({
           </div>
 
           {/* Navigation Links */}
-          <nav className="space-y-1.5" aria-label="Menu Dashboard">
+          <Liquid
+            className="space-y-1.5"
+            role="navigation"
+            aria-label="Menu Dashboard"
+            blur={3}
+            contrast={16}
+            fill="rgba(255, 255, 255, 0.45)"
+            shadow="0 12px 26px -14px rgba(13, 92, 70, 0.45)"
+          >
             {(
               [
                 ['beranda', 'home', 'Beranda'],
@@ -1355,25 +1364,26 @@ export default function NusaDashboard({
             ).map(([id, icon, label]) => {
               const isActive = activeTab === id
               return (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => switchTab(id)}
-                  className={
-                    isActive
-                      ? 'w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200 bg-rose-50 text-[#E11D48]'
-                      : 'w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-semibold text-slate-600 hover:bg-rose-50/50 hover:text-[#E11D48] transition-all duration-200'
-                  }
-                >
-                  <LucideSvg
-                    name={icon}
-                    className={`w-5 h-5 ${isActive ? 'text-[#E11D48]' : ''}`}
-                  />
-                  <span>{label}</span>
-                </button>
+                <Liquid.Item key={id} observe>
+                  <button
+                    type="button"
+                    onClick={() => switchTab(id)}
+                    className={
+                      isActive
+                        ? 'w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-300 bg-rose-50 text-[#E11D48] hover:scale-[1.06]'
+                        : 'w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-semibold text-slate-600 hover:bg-rose-50/50 hover:text-[#E11D48] hover:scale-[1.06] transition-all duration-300'
+                    }
+                  >
+                    <LucideSvg
+                      name={icon}
+                      className={`w-5 h-5 ${isActive ? 'text-[#E11D48]' : ''}`}
+                    />
+                    <span>{label}</span>
+                  </button>
+                </Liquid.Item>
               )
             })}
-          </nav>
+          </Liquid>
 
           {/* Misi Hari Ini Card */}
           <button
@@ -1455,7 +1465,7 @@ export default function NusaDashboard({
           {/* Status Badges on Right */}
           <div className="flex flex-wrap items-center justify-end gap-2.5 sm:gap-3 shrink-0 self-start xl:self-center">
             {/* Streak Badge */}
-            <div className="flex items-center gap-2.5 bg-white/90 px-3.5 py-2 rounded-2xl shadow-card border border-amber-100/80">
+            <div className="flex items-center gap-2.5 bg-white/80 backdrop-blur-md px-3.5 py-2 rounded-2xl shadow-card border border-amber-100/80">
               <div className="w-7 h-7 rounded-full bg-amber-50 flex items-center justify-center">
                 <LucideSvg name="flame" className="w-4 h-4 text-orange-500" filled />
               </div>
@@ -1468,7 +1478,7 @@ export default function NusaDashboard({
             </div>
 
             {/* XP & Level Badge */}
-            <div className="flex items-center gap-2.5 bg-white/90 px-3.5 py-2 rounded-2xl shadow-card border border-emerald-100/80">
+            <div className="flex items-center gap-2.5 bg-white/80 backdrop-blur-md px-3.5 py-2 rounded-2xl shadow-card border border-emerald-100/80">
               <div className="w-7 h-7 rounded-full bg-emerald-100/80 flex items-center justify-center">
                 <LucideSvg name="star" className="w-4 h-4 text-emerald-700" />
               </div>
@@ -1537,93 +1547,112 @@ export default function NusaDashboard({
                 <circle cx="65" cy="65" r="22" />
               </svg>
 
-              {/* 4 STAT CARDS + PRIMARY CTA ROW */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3.5 items-stretch">
+              {/* 4 STAT CARDS + PRIMARY CTA ROW — one liquid-gooey group: the
+                  boxes share a single glass surface, so hovering a box bridges
+                  into its neighbour like liquid. */}
+              <Liquid
+                className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3.5 items-stretch"
+                blur={5}
+                contrast={16}
+                fill="rgba(255, 255, 255, 0.62)"
+                shadow="0 12px 26px -12px rgba(13, 92, 70, 0.45)"
+                filterPadding={36}
+              >
                 {/* Stat 1: Provinsi */}
-                <div className="rounded-2xl px-4 py-3.5 bg-gradient-to-br from-[#FFEAE6] via-[#FFF3F0] to-[#FFF9F8] border border-rose-100/80 shadow-card flex items-center gap-3.5">
-                  <div className="w-10 h-10 rounded-full bg-[#FFD2CB] text-[#E11D48] flex items-center justify-center shrink-0">
-                    <LucideSvg name="map-pin" className="w-5 h-5" />
-                  </div>
-                  <div className="leading-tight">
-                    <div className="text-xl sm:text-2xl font-extrabold text-slate-800">
-                      {provinces.length}
+                <Liquid.Item observe>
+                  <div className="glass rounded-2xl px-4 py-3.5 bg-[#FFEAE6]/70 flex items-center gap-3.5 transition-transform duration-300 hover:scale-[1.06]">
+                    <div className="w-10 h-10 rounded-full bg-[#FFD2CB] text-[#E11D48] flex items-center justify-center shrink-0">
+                      <LucideSvg name="map-pin" className="w-5 h-5" />
                     </div>
-                    <div className="text-[11px] font-semibold text-slate-500 mt-0.5">Provinsi</div>
+                    <div className="leading-tight">
+                      <div className="text-xl sm:text-2xl font-extrabold text-slate-800">
+                        {provinces.length}
+                      </div>
+                      <div className="text-[11px] font-semibold text-slate-500 mt-0.5">Provinsi</div>
+                    </div>
                   </div>
-                </div>
+                </Liquid.Item>
 
                 {/* Stat 2: Topik Budaya */}
-                <div className="rounded-2xl px-4 py-3.5 bg-gradient-to-br from-[#E2F5EC] via-[#EDF9F3] to-[#F6FCF9] border border-emerald-100/80 shadow-card flex items-center gap-3.5">
-                  <div className="w-10 h-10 rounded-full bg-[#C4EAD8] text-[#0D5C46] flex items-center justify-center shrink-0">
-                    <LucideSvg name="book-open" className="w-5 h-5" />
-                  </div>
-                  <div className="leading-tight">
-                    <div className="text-xl sm:text-2xl font-extrabold text-slate-800">
-                      {totalTopics}
+                <Liquid.Item observe>
+                  <div className="glass rounded-2xl px-4 py-3.5 bg-[#E2F5EC]/70 flex items-center gap-3.5 transition-transform duration-300 hover:scale-[1.06]">
+                    <div className="w-10 h-10 rounded-full bg-[#C4EAD8] text-[#0D5C46] flex items-center justify-center shrink-0">
+                      <LucideSvg name="book-open" className="w-5 h-5" />
                     </div>
-                    <div className="text-[11px] font-semibold text-slate-500 mt-0.5">
-                      Topik Budaya
+                    <div className="leading-tight">
+                      <div className="text-xl sm:text-2xl font-extrabold text-slate-800">
+                        {totalTopics}
+                      </div>
+                      <div className="text-[11px] font-semibold text-slate-500 mt-0.5">
+                        Topik Budaya
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Liquid.Item>
 
                 {/* Stat 3: Pencapaian */}
-                <div className="rounded-2xl px-4 py-3.5 bg-gradient-to-br from-[#EFE9FB] via-[#F5F1FD] to-[#FAF8FE] border border-purple-100/80 shadow-card flex items-center gap-3.5">
-                  <div className="w-10 h-10 rounded-full bg-[#DDD2F8] text-amber-600 flex items-center justify-center shrink-0">
-                    <LucideSvg name="trophy" className="w-5 h-5" />
-                  </div>
-                  <div className="leading-tight">
-                    <div className="text-xl sm:text-2xl font-extrabold text-slate-800">
-                      {unlockedBadgesCount}
+                <Liquid.Item observe>
+                  <div className="glass rounded-2xl px-4 py-3.5 bg-[#EFE9FB]/70 flex items-center gap-3.5 transition-transform duration-300 hover:scale-[1.06]">
+                    <div className="w-10 h-10 rounded-full bg-[#DDD2F8] text-amber-600 flex items-center justify-center shrink-0">
+                      <LucideSvg name="trophy" className="w-5 h-5" />
                     </div>
-                    <div className="text-[11px] font-semibold text-slate-500 mt-0.5">
-                      Pencapaian
+                    <div className="leading-tight">
+                      <div className="text-xl sm:text-2xl font-extrabold text-slate-800">
+                        {unlockedBadgesCount}
+                      </div>
+                      <div className="text-[11px] font-semibold text-slate-500 mt-0.5">
+                        Pencapaian
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Liquid.Item>
 
                 {/* Stat 4: Poin */}
-                <div className="rounded-2xl px-4 py-3.5 bg-gradient-to-br from-[#FFF3D6] via-[#FFF8E6] to-[#FFFDF5] border border-amber-100/90 shadow-card flex items-center gap-3.5">
-                  <div className="w-10 h-10 rounded-full bg-[#FDE29F] text-amber-600 flex items-center justify-center shrink-0">
-                    <LucideSvg name="star" className="w-5 h-5" filled />
-                  </div>
-                  <div className="leading-tight">
-                    <div className="text-xl sm:text-2xl font-extrabold text-slate-800">
-                      {points}
+                <Liquid.Item observe>
+                  <div className="glass rounded-2xl px-4 py-3.5 bg-[#FFF3D6]/75 flex items-center gap-3.5 transition-transform duration-300 hover:scale-[1.06]">
+                    <div className="w-10 h-10 rounded-full bg-[#FDE29F] text-amber-600 flex items-center justify-center shrink-0">
+                      <LucideSvg name="star" className="w-5 h-5" filled />
                     </div>
-                    <div className="text-[11px] font-semibold text-slate-500 mt-0.5">Poin</div>
+                    <div className="leading-tight">
+                      <div className="text-xl sm:text-2xl font-extrabold text-slate-800">
+                        {points}
+                      </div>
+                      <div className="text-[11px] font-semibold text-slate-500 mt-0.5">Poin</div>
+                    </div>
                   </div>
-                </div>
+                </Liquid.Item>
 
                 {/* Primary CTA Button: Lanjut Belajar -> */}
-                <div className="col-span-2 sm:col-span-4 lg:col-span-1 flex items-center relative">
-                  <svg
-                    className="absolute -top-2.5 -right-1.5 w-6 h-6 text-amber-400 pointer-events-none z-10"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    aria-hidden
-                  >
-                    <line x1="6" y1="12" x2="12" y2="4" />
-                    <line x1="12" y1="15" x2="20" y2="10" />
-                    <line x1="14" y1="20" x2="22" y2="19" />
-                  </svg>
-                  <button
-                    type="button"
-                    onClick={() => openProvinceById('aceh')}
-                    className="w-full h-full min-h-[56px] bg-[#E11D48] hover:bg-[#BE123C] text-white font-bold text-sm px-6 py-3.5 rounded-full flex items-center justify-center gap-2.5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
-                  >
-                    <span>Lanjut Belajar</span>
-                    <LucideSvg name="arrow-right" className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
+                <Liquid.Item observe className="col-span-2 sm:col-span-4 lg:col-span-1">
+                  <div className="flex items-center relative">
+                    <svg
+                      className="absolute -top-2.5 -right-1.5 w-6 h-6 text-amber-400 pointer-events-none z-10"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      aria-hidden
+                    >
+                      <line x1="6" y1="12" x2="12" y2="4" />
+                      <line x1="12" y1="15" x2="20" y2="10" />
+                      <line x1="14" y1="20" x2="22" y2="19" />
+                    </svg>
+                    <button
+                      type="button"
+                      onClick={() => openProvinceById('aceh')}
+                      className="w-full h-full min-h-[56px] bg-[#E11D48] hover:bg-[#BE123C] text-white font-bold text-sm px-6 py-3.5 rounded-full flex items-center justify-center gap-2.5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                    >
+                      <span>Lanjut Belajar</span>
+                      <LucideSvg name="arrow-right" className="w-4 h-4" />
+                    </button>
+                  </div>
+                </Liquid.Item>
+              </Liquid>
             </section>
 
             {/* INTERACTIVE MAP CARD: PETA EKSPLORASI INDONESIA */}
-            <section className="bg-white rounded-3xl p-5 sm:p-6 shadow-soft border border-emerald-50">
+            <section className="glass rounded-3xl p-5 sm:p-6 bg-white/60">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
                 <div className="flex items-start gap-3">
                   <div className="w-9 h-9 rounded-xl bg-emerald-50 text-[#0D5C46] flex items-center justify-center shrink-0 mt-0.5">
@@ -1727,7 +1756,7 @@ export default function NusaDashboard({
             {/* BOTTOM 2-COLUMN SECTION */}
             <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* LEFT COLUMN: TOP 5 PROVINSI PALING AKTIF */}
-              <div className="lg:col-span-5 bg-white rounded-3xl p-5 sm:p-6 shadow-soft border border-emerald-50 flex flex-col justify-between">
+              <div className="lg:col-span-5 glass rounded-3xl p-5 sm:p-6 bg-white/60 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between mb-5">
                     <div className="flex items-center gap-2.5">
@@ -1785,7 +1814,7 @@ export default function NusaDashboard({
               </div>
 
               {/* RIGHT COLUMN: PROGRES BELAJAR ANDA */}
-              <div className="lg:col-span-7 bg-white rounded-3xl p-5 sm:p-6 shadow-soft border border-emerald-50 flex flex-col justify-between">
+              <div className="lg:col-span-7 glass rounded-3xl p-5 sm:p-6 bg-white/60 flex flex-col justify-between">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center">
@@ -1937,7 +1966,7 @@ export default function NusaDashboard({
             </section>
 
             {/* BOTTOM ACHIEVEMENT BANNER */}
-            <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#E6F4F1] via-[#FBF7EB] to-[#FEF3C7]/80 border border-amber-200/60 shadow-soft">
+            <section className="relative overflow-hidden rounded-3xl glass bg-[#FFF8E7]/80">
               <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-5 sm:px-8 sm:py-5 relative z-10">
                 <div className="flex items-center gap-4 sm:gap-6">
                   {/* Left Scenic Temple Illustration */}
@@ -1964,7 +1993,7 @@ export default function NusaDashboard({
                   </div>
 
                   {/* Circular Gold Star Icon */}
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white shadow-md shrink-0 animate-float">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-amber-400 flex items-center justify-center text-white shadow-md shrink-0 animate-float">
                     <LucideSvg name="star" className="w-6 h-6 sm:w-7 sm:h-7" filled />
                   </div>
 
@@ -1999,7 +2028,7 @@ export default function NusaDashboard({
         {/* TAB 2: KOLEKSI BUDAYA */}
         {activeTab === 'koleksi' && (
           <div className="space-y-6">
-            <div className="bg-white rounded-3xl p-6 shadow-soft border border-emerald-50">
+            <div className="glass rounded-3xl p-6 bg-white/60">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                 <div>
                   <h2 className="text-xl font-extrabold text-[#0D5C46]">
@@ -2061,7 +2090,7 @@ export default function NusaDashboard({
                       key={prov.id}
                       type="button"
                       onClick={() => openProvinceById(prov.id)}
-                      className="text-left rounded-2xl border border-slate-100 overflow-hidden bg-slate-50/40 hover:bg-white hover:shadow-md transition cursor-pointer group flex flex-col"
+                      className="text-left rounded-2xl border border-emerald-50 overflow-hidden bg-white/80 hover:bg-white hover:shadow-md transition cursor-pointer group flex flex-col"
                     >
                       <div className="h-40 overflow-hidden relative w-full bg-emerald-950/10">
                         <img
@@ -2105,7 +2134,7 @@ export default function NusaDashboard({
         {/* TAB 3: PERINGKAT (LEADERBOARD) */}
         {activeTab === 'peringkat' && (
           <div className="space-y-6">
-            <div className="bg-white rounded-3xl p-6 shadow-soft border border-emerald-50">
+            <div className="glass rounded-3xl p-6 bg-white/60">
               <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
                 <div>
                   <h2 className="text-xl font-extrabold text-[#0D5C46]">
@@ -2152,7 +2181,7 @@ export default function NusaDashboard({
         {/* TAB 4: PROFIL & PENCAPAIAN */}
         {activeTab === 'profil' && (
           <div className="space-y-6">
-            <div className="bg-white rounded-3xl p-6 shadow-soft border border-emerald-50">
+            <div className="glass rounded-3xl p-6 bg-white/60">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-5 pb-6 border-b border-slate-100">
                 <div className="flex flex-col sm:flex-row items-center gap-5">
                   <img
@@ -2198,7 +2227,7 @@ export default function NusaDashboard({
                     key={b.title}
                     className={`p-4 rounded-2xl border text-center transition ${
                       b.unlocked
-                        ? 'bg-gradient-to-br from-amber-50 to-white border-amber-100'
+                        ? 'bg-amber-50 border-amber-100'
                         : 'bg-slate-50/70 border-slate-200/70 opacity-60'
                     }`}
                   >
