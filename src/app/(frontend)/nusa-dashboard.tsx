@@ -1186,6 +1186,7 @@ export default function NusaDashboard({
   useEffect(() => {
     let cancelled = false
     let map: LeafletMap | null = null
+    let observer: IntersectionObserver | null = null
 
     async function init() {
       // Leaflet reads `window` at module scope, so a static import would break
@@ -1203,6 +1204,9 @@ export default function NusaDashboard({
       leaflet
         .tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 12,
+          // One buffer row instead of two: fewer offscreen tiles fetched on
+          // the initial pan, invisible to the user.
+          keepBuffer: 1,
           className: 'nusa-tiles',
         })
         .addTo(map)
@@ -1232,10 +1236,23 @@ export default function NusaDashboard({
       setMapReady(true)
     }
 
-    init()
+    // The map sits below the stat cards: don't pull ~1MB of tiles until the
+    // card is about to enter the viewport.
+    observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          observer?.disconnect()
+          observer = null
+          void init()
+        }
+      },
+      { rootMargin: '220px 0px' },
+    )
+    if (mapHostRef.current) observer.observe(mapHostRef.current)
 
     return () => {
       cancelled = true
+      observer?.disconnect()
       map?.remove()
       mapRef.current = null
       leafletRef.current = null
@@ -1868,6 +1885,8 @@ export default function NusaDashboard({
                         <img
                           src={item.image}
                           alt={item.name}
+                          loading="lazy"
+                          decoding="async"
                           className="w-12 h-8 rounded-full object-cover shrink-0 shadow-xs"
                         />
                         <div className="flex-1 min-w-0">

@@ -994,7 +994,19 @@ input:focus-visible {
   visibility: visible;
 }
 .pin.open > span {
-  animation: pulse 2s infinite;
+  position: relative;
+  /* Ring pulse runs on transform/opacity only (composited), so 38 live pins
+     no longer repaint every frame while panning or zooming. */
+  will-change: transform;
+}
+.pin.open > span::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 8px #edb63f30;
+  pointer-events: none;
+  animation: pin-ring 2s ease-out infinite;
 }
 .map-legend {
   position: absolute;
@@ -1049,9 +1061,18 @@ input:focus-visible {
 .map-attribution:hover {
   text-decoration: underline;
 }
-@keyframes pulse {
-  50% {
-    box-shadow: 0 0 0 8px #edb63f30;
+@keyframes pin-ring {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  60% {
+    transform: scale(1.32);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.32);
+    opacity: 0;
   }
 }
 .province-list {
