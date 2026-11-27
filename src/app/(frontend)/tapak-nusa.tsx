@@ -44,6 +44,7 @@ type ProvinceState = Province & {
 type DemoUser = {
   email: string
   name: string
+  avatar?: string | null
 }
 
 type ClearedProvinces = Record<string, number>
@@ -289,7 +290,7 @@ function LandingNav({
   )
 }
 
-function DemoAuthModal({
+function AuthModal({
   currentUser,
   onClose,
   onSuccess,
@@ -300,19 +301,37 @@ function DemoAuthModal({
   onSuccess: (user: DemoUser) => void
   onSignOut: () => void
 }) {
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
+  const [mode, setMode] = useState<'signin' | 'signup' | 'otp'>('signin')
+  const [otpOrigin, setOtpOrigin] = useState<'signin' | 'signup'>('signup')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [code, setCode] = useState('')
   const [token, setToken] = useState('')
   const [scriptReady, setScriptReady] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
+  const [resendIn, setResendIn] = useState(0)
   const turnstileRef = useRef<HTMLDivElement>(null)
   const widgetIdRef = useRef<string | null>(null)
   const siteKey = process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY
 
   useEffect(() => {
-    if (!scriptReady || !siteKey || !window.turnstile || !turnstileRef.current || currentUser)
+    if (resendIn <= 0) return
+    const timer = setInterval(() => setResendIn((seconds) => (seconds > 0 ? seconds - 1 : 0)), 1000)
+    return () => clearInterval(timer)
+  }, [resendIn])
+
+  useEffect(() => {
+    if (
+      !scriptReady ||
+      !siteKey ||
+      !window.turnstile ||
+      !turnstileRef.current ||
+      currentUser ||
+      mode !== 'signup'
+    )
       return
 
     widgetIdRef.current = window.turnstile.render(turnstileRef.current, {
@@ -335,46 +354,174 @@ function DemoAuthModal({
         widgetIdRef.current = null
       }
     }
-  }, [currentUser, scriptReady, siteKey])
+  }, [currentUser, scriptReady, siteKey, mode])
+  function validEmail(value: string) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+  }
 
-  async function submitDemoAuth(event: React.FormEvent<HTMLFormElement>) {
+  type AuthApiResponse = {
+    ok?: boolean
+    status?: string
+    error?: string
+    message?: string
+    user?: { name?: string; email?: string; avatar?: string | null }
+    retryAfterSeconds?: number
+  }
+
+  async function callAuthApi(path: string, body: Record<string, unknown>) {
+    const response = await fetch(path, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    return { ok: response.ok, result: (await response.json()) as AuthApiResponse }
+  }
+
+  function sessionUser(result: AuthApiResponse): DemoUser | null {
+    return result.user?.name && result.user?.email
+      ? { email: result.user.email, name: result.user.name, avatar: result.user.avatar ?? null }
+      : null
+  }
+
+  async function submitSignup(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError('')
+    setNotice('')
     const normalizedEmail = email.trim().toLowerCase()
-
-    if (!/^[^\s@]+@gmail\.com$/i.test(normalizedEmail)) {
-      setError('Gunakan alamat Gmail yang valid, misalnya nama@gmail.com.')
-      return
-    }
-    if (mode === 'signup' && name.trim().length < 2) {
+    if (name.trim().length < 2) {
       setError('Masukkan nama penjelajah minimal 2 karakter.')
       return
     }
-    if (!token) {
+    if (!validEmail(normalizedEmail)) {
+      setError('Gunakan alamat email yang valid, misalnya nama@email.com.')
+      return
+    }
+    if (password.length < 8) {
+      setError('Kata sandi minimal 8 karakter.')
+      return
+    }
+    if (siteKey && !token) {
       setError('Selesaikan verifikasi Cloudflare terlebih dahulu.')
       return
     }
 
     setBusy(true)
     try {
-      const response = await fetch('/api/turnstile', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ token }),
-      })
-      const result = (await response.json()) as { success?: boolean; error?: string }
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || 'Verifikasi Cloudflare belum berhasil.')
-      }
-
-      onSuccess({
+      const { ok, result } = await callAuthApi('/api/auth/register', {
+        name: name.trim(),
         email: normalizedEmail,
-        name: mode === 'signup' ? name.trim() : normalizedEmail.split('@')[0],
+        password,
+        turnstileToken: siteKey ? token : undefined,
       })
+      if (!ok) throw new Error(result.message || 'Pendaftaran gagal. Coba lagi.')
+      setOtpOrigin('signup')
+      setMode('otp')
+      setCode('')
+      setResendIn(60)
+      setNotice(typeof result.message === 'string' ? result.message : '')
     } catch (authError) {
-      setError(authError instanceof Error ? authError.message : 'Tidak dapat melanjutkan masuk.')
+      setError(authError instanceof Error ? authError.message : 'Pendaftaran gagal. Coba lagi.')
       if (widgetIdRef.current && window.turnstile) window.turnstile.reset(widgetIdRef.current)
       setToken('')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function submitSignin(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setError('')
+    setNotice('')
+    const normalizedEmail = email.trim().toLowerCase()
+    if (!validEmail(normalizedEmail)) {
+      setError('Gunakan alamat email yang valid, misalnya nama@email.com.')
+      return
+    }
+    if (!password) {
+      setError('Masukkan kata sandi.')
+      return
+    }
+
+    setBusy(true)
+    try {
+      const { ok, result } = await callAuthApi('/api/auth/login', {
+        email: normalizedEmail,
+        password,
+      })
+      if (!ok) throw new Error(result.message || 'Email atau kata sandi salah.')
+      if (result.status === 'otp_required') {
+        setOtpOrigin('signin')
+        setMode('otp')
+        setCode('')
+        setResendIn(60)
+        setNotice(typeof result.message === 'string' ? result.message : '')
+        return
+      }
+      const user = sessionUser(result)
+      if (!user) throw new Error('Sesi tidak dapat dibuat. Coba lagi.')
+      onSuccess(user)
+    } catch (authError) {
+      setError(authError instanceof Error ? authError.message : 'Tidak dapat masuk. Coba lagi.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function submitOtp(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setError('')
+    setNotice('')
+    if (!/^\d{6}$/.test(code)) {
+      setError('Masukkan 6 digit kode verifikasi.')
+      return
+    }
+
+    setBusy(true)
+    try {
+      const normalizedEmail = email.trim().toLowerCase()
+      const { ok, result } = await callAuthApi('/api/auth/verify', {
+        email: normalizedEmail,
+        code,
+      })
+      if (!ok) throw new Error(result.message || 'Kode verifikasi salah.')
+      const login = await callAuthApi('/api/auth/login', { email: normalizedEmail, password })
+      if (!login.ok || login.result.status !== 'ok') {
+        throw new Error(
+          login.result.message || 'Verifikasi berhasil, tetapi masuk gagal. Silakan masuk manual.',
+        )
+      }
+      const user = sessionUser(login.result)
+      if (!user) throw new Error('Sesi tidak dapat dibuat. Coba lagi.')
+      onSuccess(user)
+    } catch (authError) {
+      setError(authError instanceof Error ? authError.message : 'Kode verifikasi salah.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function resendOtp() {
+    setError('')
+    setNotice('')
+    setBusy(true)
+    try {
+      const { ok, result } = await callAuthApi('/api/auth/resend', {
+        email: email.trim().toLowerCase(),
+        password,
+      })
+      if (!ok) {
+        if (result.error === 'resend_cooldown' && typeof result.retryAfterSeconds === 'number') {
+          setResendIn(result.retryAfterSeconds)
+        }
+        throw new Error(result.message || 'Gagal mengirim ulang kode.')
+      }
+      setCode('')
+      setResendIn(60)
+      setNotice(
+        typeof result.message === 'string' ? result.message : 'Kode verifikasi baru dikirim.',
+      )
+    } catch (authError) {
+      setError(authError instanceof Error ? authError.message : 'Gagal mengirim ulang kode.')
     } finally {
       setBusy(false)
     }
@@ -388,28 +535,84 @@ function DemoAuthModal({
         </button>
         <div className="auth-brand">
           <Logo />
-          <span>Mode demo</span>
+          <span>Akun</span>
         </div>
         {currentUser ? (
           <div className="auth-account">
-            <span className="google-mark">G</span>
+            <span className="auth-mark">{currentUser.name.charAt(0).toUpperCase()}</span>
             <p className="eyebrow">Akun penjelajah aktif</p>
             <h2>{currentUser.name}</h2>
             <p>{currentUser.email}</p>
             <small>
-              Akun demo tersimpan hanya di browser ini dan tidak terhubung ke akun Google asli.
+              Kamu masuk dengan email dan kata sandi. Sesi tersimpan aman di server Tapak Nusa.
             </small>
             <button className="secondary" onClick={onSignOut}>
-              Keluar dari akun demo
+              Keluar dari akun
             </button>
           </div>
+        ) : mode === 'otp' ? (
+          <>
+            <p className="eyebrow">Verifikasi email</p>
+            <h2>Cek email kamu.</h2>
+            <p className="auth-intro">
+              Kami mengirim kode verifikasi 6 digit ke <strong>{email}</strong>. Masukkan kodenya
+              untuk mengaktifkan akun.
+            </p>
+            {notice && (
+              <p className="auth-notice" role="status">
+                {notice}
+              </p>
+            )}
+            <form onSubmit={submitOtp}>
+              <label>
+                <span>Kode verifikasi</span>
+                <input
+                  className="otp-input"
+                  value={code}
+                  onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="000000"
+                  maxLength={6}
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                />
+              </label>
+              {error && (
+                <p className="auth-error" role="alert">
+                  {error}
+                </p>
+              )}
+              <button
+                className="auth-submit-button"
+                type="submit"
+                disabled={busy || code.length < 6}
+              >
+                {busy ? 'Memeriksa...' : 'Verifikasi & masuk'}
+              </button>
+            </form>
+            <div className="otp-actions">
+              <button type="button" onClick={resendOtp} disabled={busy || resendIn > 0}>
+                {resendIn > 0 ? `Kirim ulang kode (${resendIn}s)` : 'Kirim ulang kode'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode(otpOrigin)
+                  setError('')
+                  setNotice('')
+                }}
+              >
+                Ganti email
+              </button>
+            </div>
+          </>
         ) : (
           <>
             <p className="eyebrow">Akses platform Tapak Nusa</p>
-            <h2>{mode === 'signin' ? 'Masuk dengan Gmail.' : 'Buat akun penjelajah.'}</h2>
+            <h2>{mode === 'signin' ? 'Masuk.' : 'Buat akun penjelajah.'}</h2>
             <p className="auth-intro">
-              Simulasi akun untuk memulai kuis. Kami tidak meminta kata sandi dan tidak terhubung ke
-              Google OAuth.
+              {mode === 'signin'
+                ? 'Masuk dengan email dan kata sandi untuk melanjutkan petualangan budaya.'
+                : 'Daftar dengan email dan kata sandi. Kami kirim kode verifikasi 6 digit saat mendaftar.'}
             </p>
             <div className="auth-tabs" role="tablist" aria-label="Pilih masuk atau daftar">
               <button
@@ -419,9 +622,10 @@ function DemoAuthModal({
                 onClick={() => {
                   setMode('signin')
                   setError('')
+                  setNotice('')
                 }}
               >
-                Sign in
+                Masuk
               </button>
               <button
                 role="tab"
@@ -430,12 +634,13 @@ function DemoAuthModal({
                 onClick={() => {
                   setMode('signup')
                   setError('')
+                  setNotice('')
                 }}
               >
-                Sign up
+                Daftar
               </button>
             </div>
-            <form onSubmit={submitDemoAuth}>
+            <form onSubmit={mode === 'signin' ? submitSignin : submitSignup}>
               {mode === 'signup' && (
                 <label>
                   <span>Nama penjelajah</span>
@@ -443,45 +648,52 @@ function DemoAuthModal({
                     value={name}
                     onChange={(event) => setName(event.target.value)}
                     placeholder="Nama panggilan"
-                    maxLength={30}
+                    maxLength={60}
                     autoComplete="name"
                   />
                 </label>
               )}
               <label>
-                <span>Alamat Gmail</span>
+                <span>Alamat email</span>
                 <input
                   type="email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  placeholder="nama@gmail.com"
+                  placeholder="nama@email.com"
                   autoComplete="email"
                   inputMode="email"
                 />
               </label>
-              <div className="turnstile-shell">
-                {siteKey ? (
-                  <div ref={turnstileRef} />
-                ) : (
-                  <p>Cloudflare Turnstile belum dikonfigurasi.</p>
-                )}
-              </div>
+              <label>
+                <span>Kata sandi</span>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder={mode === 'signup' ? 'Minimal 8 karakter' : 'Kata sandi kamu'}
+                  autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                />
+              </label>
+              {mode === 'signup' && (
+                <div className="turnstile-shell">
+                  {siteKey ? (
+                    <div ref={turnstileRef} />
+                  ) : (
+                    <p>Cloudflare Turnstile belum dikonfigurasi.</p>
+                  )}
+                </div>
+              )}
               {error && (
                 <p className="auth-error" role="alert">
                   {error}
                 </p>
               )}
-              <button className="google-auth-button" type="submit" disabled={busy || !siteKey}>
-                <span className="google-mark">G</span>
-                {busy
-                  ? 'Memverifikasi...'
-                  : mode === 'signin'
-                    ? 'Lanjutkan dengan Gmail'
-                    : 'Daftar dengan Gmail'}
+              <button className="auth-submit-button" type="submit" disabled={busy}>
+                {busy ? 'Memproses...' : mode === 'signin' ? 'Masuk' : 'Daftar'}
               </button>
             </form>
             <p className="cloudflare-note">
-              <Icon name="lock" size={13} /> Dilindungi oleh Cloudflare Turnstile
+              <Icon name="lock" size={13} /> Data akun disimpan aman di server Tapak Nusa
             </p>
             <Script
               src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
@@ -864,21 +1076,8 @@ export default function TapakNusa({ content }: { content: SiteContent }) {
   const dailyRatio = Math.min(dailyDone / dailyTarget, 1)
 
   useEffect(() => {
-    let restoredUser: DemoUser | null = null
-    const savedUser = localStorage.getItem('tapak-nusa-demo-user')
-    if (savedUser) {
-      try {
-        const user = JSON.parse(savedUser) as DemoUser
-        if (user.email?.endsWith('@gmail.com') && user.name) {
-          restoredUser = user
-          setDemoUser(user)
-        } else {
-          localStorage.removeItem('tapak-nusa-demo-user')
-        }
-      } catch {
-        localStorage.removeItem('tapak-nusa-demo-user')
-      }
-    }
+    // Clean up the retired fake-user marker, then hydrate the real session.
+    localStorage.removeItem('tapak-nusa-demo-user')
 
     const savedPlayer = localStorage.getItem('nusantara-quest-player')
     if (savedPlayer) {
@@ -892,7 +1091,7 @@ export default function TapakNusa({ content }: { content: SiteContent }) {
           daily?: DailyState
         }
         setStarted(Boolean(data.started))
-        setAlias(restoredUser?.name || data.alias || 'Kelana')
+        setAlias(data.alias || 'Kelana')
         setXp(typeof data.xp === 'number' ? data.xp : 80)
 
         const isUntouchedZeroState =
@@ -908,11 +1107,36 @@ export default function TapakNusa({ content }: { content: SiteContent }) {
       } catch {
         localStorage.removeItem('nusantara-quest-player')
       }
-    } else if (restoredUser) {
-      setAlias(restoredUser.name)
-      setStarted(true)
     }
+
+    let cancelled = false
+    async function hydrateSession() {
+      try {
+        const response = await fetch('/api/users/me', { credentials: 'same-origin' })
+        if (!response.ok) return
+        const data = (await response.json()) as {
+          user?: { email?: string; name?: string; avatar?: string | null } | null
+        }
+        if (cancelled || !data.user?.email || !data.user?.name) return
+        setDemoUser({
+          email: data.user.email,
+          name: data.user.name,
+          avatar: data.user.avatar ?? null,
+        })
+        if (!savedPlayer) {
+          setAlias(data.user.name)
+          setStarted(true)
+        }
+      } catch {
+        // No session or network hiccup: stay signed out.
+      }
+    }
+    hydrateSession()
+
     setRestored(true)
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   useEffect(() => {
@@ -997,10 +1221,9 @@ export default function TapakNusa({ content }: { content: SiteContent }) {
     setAuthOpen(true)
   }
 
-  function completeDemoAuth(user: DemoUser) {
+  function completeAuth(user: DemoUser) {
     setDemoUser(user)
     setAlias(user.name)
-    localStorage.setItem('tapak-nusa-demo-user', JSON.stringify(user))
     setAuthOpen(false)
     if (!started) {
       setStarted(true)
@@ -1014,7 +1237,7 @@ export default function TapakNusa({ content }: { content: SiteContent }) {
     }
   }
 
-  function signOutDemoUser() {
+  async function signOutDemoUser() {
     setDemoUser(null)
     setAlias('Kelana')
     setShowAbout(false)
@@ -1022,8 +1245,12 @@ export default function TapakNusa({ content }: { content: SiteContent }) {
     setSelected(null)
     setLearn(null)
     resetQuiz()
-    localStorage.removeItem('tapak-nusa-demo-user')
     setAuthOpen(false)
+    try {
+      await fetch('/api/users/logout', { method: 'POST' })
+    } catch {
+      // Session cleanup is best-effort; local state is already reset.
+    }
   }
 
   function resetQuiz() {
@@ -1097,13 +1324,13 @@ export default function TapakNusa({ content }: { content: SiteContent }) {
   }
 
   const authModal = authOpen ? (
-    <DemoAuthModal
+    <AuthModal
       currentUser={demoUser}
       onClose={() => {
         setAuthOpen(false)
         setPendingQuiz(false)
       }}
-      onSuccess={completeDemoAuth}
+      onSuccess={completeAuth}
       onSignOut={signOutDemoUser}
     />
   ) : null

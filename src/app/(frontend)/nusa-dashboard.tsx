@@ -19,6 +19,7 @@ type MapRegion = 'all' | 'barat' | 'tengah' | 'timur'
 type DemoUser = {
   email: string
   name: string
+  avatar?: string | null
 }
 
 type LevelInfo = {
@@ -135,10 +136,13 @@ function buildPinIcon(
   const badge = appearance.done
     ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>'
     : `<span>${order + 1}</span>`
+  // The visible province name is hidden until hover, which also removes it from
+  // the accessible name — so label the button explicitly.
+  const label = `${p.name}, ${appearance.done ? 'selesai' : 'terbuka'}`
   return leaflet.divIcon({
     className: `pin-anchor${appearance.dim ? ' pin-dim' : ''}`,
     html:
-      `<button type="button" class="${classes}" style="--pin:${tone}">` +
+      `<button type="button" class="${classes}" style="--pin:${tone}" aria-label="${escapePinText(label)}">` +
       `<span>${badge}</span>` +
       `<b>${escapePinText(p.name)}</b>` +
       '</button>',
@@ -709,9 +713,135 @@ function LucideSvg({
           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
         </svg>
       )
+    case 'pencil':
+      return (
+        <svg
+          className={className}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden
+        >
+          <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
+          <path d="m15 5 4 4" />
+        </svg>
+      )
     default:
       return null
   }
+}
+
+const AVATAR_MAX_BYTES = 2 * 1024 * 1024
+
+/**
+ * Editable profile picture. The picture lives in the Cloudflare R2 bucket
+ * (avatars/<userId>) and is served by /api/profile/avatar for the signed-in
+ * session, so guests only see the initial-letter fallback until they upload.
+ */
+function AvatarEdit({
+  user,
+  onOpenAuth,
+  onToast,
+  onlineDot = false,
+  className = 'w-16 h-16 sm:w-20 sm:h-20',
+}: {
+  user: DemoUser | null
+  onOpenAuth: () => void
+  onToast: (text: string) => void
+  onlineDot?: boolean
+  className?: string
+}) {
+  const [version, setVersion] = useState(0)
+  const [uploading, setUploading] = useState(false)
+  const [broken, setBroken] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const hasPhoto = Boolean(user?.avatar) && !broken
+
+  function pickFile() {
+    if (!user) {
+      onOpenAuth()
+      return
+    }
+    inputRef.current?.click()
+  }
+
+  async function upload(file: File) {
+    if (!user) return
+    if (file.size > AVATAR_MAX_BYTES) {
+      onToast('Ukuran foto maksimal 2MB.')
+      return
+    }
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type)) {
+      onToast('Format foto harus JPEG, PNG, atau WebP.')
+      return
+    }
+    setUploading(true)
+    try {
+      const body = new FormData()
+      body.append('file', file)
+      const response = await fetch('/api/profile/avatar', { method: 'POST', body })
+      if (!response.ok) {
+        const result = (await response.json().catch(() => null)) as { message?: string } | null
+        throw new Error(result?.message || 'Unggah foto gagal. Coba lagi.')
+      }
+      setBroken(false)
+      setVersion((v) => v + 1)
+      onToast('Foto profil berhasil diperbarui.')
+    } catch (error) {
+      onToast(error instanceof Error ? error.message : 'Unggah foto gagal. Coba lagi.')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  return (
+    <div className={`relative shrink-0 ${className}`}>
+      <div className="w-full h-full rounded-full p-1 bg-white shadow-soft">
+        {hasPhoto ? (
+          <img
+            src={`/api/profile/avatar?v=${version}`}
+            alt={`Foto profil ${user?.name ?? ''}`}
+            className="w-full h-full object-cover rounded-full"
+            onError={() => setBroken(true)}
+          />
+        ) : (
+          <span className="w-full h-full rounded-full bg-[#0D5C46] text-white grid place-items-center font-extrabold">
+            {(user?.name ?? 'K').charAt(0).toUpperCase()}
+          </span>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={pickFile}
+        disabled={uploading}
+        title="Ubah foto profil"
+        aria-label="Ubah foto profil"
+        className="avatar-edit"
+      >
+        <LucideSvg name="pencil" className="w-3.5 h-3.5" />
+      </button>
+      {onlineDot && (
+        <span
+          className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white shadow-xs"
+          title="Online"
+        />
+      )}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={(event) => {
+          const file = event.target.files?.[0]
+          if (file) void upload(file)
+          event.target.value = ''
+        }}
+      />
+    </div>
+  )
 }
 
 function NusaBrandPinLogo() {
@@ -1309,6 +1439,7 @@ export default function NusaDashboard({
         />
       )}
 
+
       {/* LEFT SIDEBAR */}
       <aside
         className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-100 flex flex-col justify-between transform ${
@@ -1421,20 +1552,13 @@ export default function NusaDashboard({
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 pt-1">
           {activeTab === 'beranda' ? (
             <div className="flex items-center gap-4 sm:gap-5">
-              {/* Circular User Avatar with Online Green Dot */}
-              <div className="relative w-16 h-16 sm:w-20 sm:h-20 shrink-0">
-                <div className="w-full h-full rounded-full p-1 bg-white shadow-soft">
-                  <img
-                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80"
-                    alt={`Foto profil ${displayName}`}
-                    className="w-full h-full object-cover rounded-full"
-                  />
-                </div>
-                <span
-                  className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white shadow-xs"
-                  title="Online"
-                />
-              </div>
+              {/* Editable profile picture backed by Cloudflare R2 */}
+              <AvatarEdit
+                user={demoUser}
+                onOpenAuth={onOpenAuth}
+                onToast={pushToast}
+                onlineDot
+              />
 
               {/* Greeting & Headline */}
               <div>
@@ -2144,11 +2268,14 @@ export default function NusaDashboard({
             <div className="glass rounded-3xl p-6 bg-white/60">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-5 pb-6 border-b border-slate-100">
                 <div className="flex flex-col sm:flex-row items-center gap-5">
-                  <img
-                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80"
-                    alt={displayName}
-                    className="w-20 h-20 rounded-full object-cover ring-4 ring-emerald-100"
-                  />
+                  <div className="ring-4 ring-emerald-100 rounded-full">
+                    <AvatarEdit
+                      user={demoUser}
+                      onOpenAuth={onOpenAuth}
+                      onToast={pushToast}
+                      className="w-20 h-20"
+                    />
+                  </div>
                   <div className="text-center sm:text-left">
                     <h2 className="text-xl font-extrabold text-slate-800">{displayName}</h2>
                     <p className="text-xs text-slate-500 mb-2.5">
@@ -2215,11 +2342,11 @@ export default function NusaDashboard({
           onMouseDown={closeProvinceModal}
         >
           <div
-            className="bg-white rounded-3xl max-w-xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-emerald-100 transform transition-all"
+            className="bg-white rounded-3xl max-w-xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-rose-100/50 transform transition-all"
             onMouseDown={(e) => e.stopPropagation()}
           >
             {/* Modal Header Image */}
-            <div className="relative h-44 sm:h-52 bg-emerald-900">
+            <div className="relative h-44 sm:h-52 bg-[#881337] overflow-hidden">
               <img
                 src={
                   modalStep === 'quiz' && activeQuestion?.image
@@ -2227,7 +2354,7 @@ export default function NusaDashboard({
                     : activeCard?.image || activeHighlight?.thumb || ''
                 }
                 alt={selectedProvince.name}
-                className="w-full h-full object-cover opacity-90"
+                className="w-full h-full object-cover opacity-90 transition-opacity duration-300"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-900/85 via-slate-900/30 to-transparent" />
 
@@ -2248,7 +2375,7 @@ export default function NusaDashboard({
                 <h3 className="text-xl sm:text-2xl font-extrabold">
                   Provinsi {selectedProvince.name}
                 </h3>
-                <p className="text-xs text-emerald-100 line-clamp-1">
+                <p className="text-xs text-rose-100 line-clamp-1">
                   {activeHighlight?.tagline ||
                     activeAdventure.cards.map((c) => c.title).join(' • ')}
                 </p>
@@ -2260,7 +2387,7 @@ export default function NusaDashboard({
               {modalStep === 'story' ? (
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2 text-xs font-bold text-[#0D5C46]">
+                    <div className="flex items-center gap-2 text-xs font-bold text-[#E11D48]">
                       <LucideSvg name="sparkles" className="w-4 h-4" />
                       <span>
                         Pengantar Budaya ({cardIndex + 1}/{activeAdventure.cards.length})

@@ -64,6 +64,7 @@ export type SupportedTimezones =
 export interface Config {
   auth: {
     admins: AdminAuthOperations;
+    users: UserAuthOperations;
   };
   blocks: {};
   collections: {
@@ -75,6 +76,7 @@ export interface Config {
     'culture-cards': CultureCard;
     'quiz-questions': QuizQuestion;
     'culture-entries': CultureEntry;
+    users: User;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -91,6 +93,7 @@ export interface Config {
     'culture-cards': CultureCardsSelect<false> | CultureCardsSelect<true>;
     'quiz-questions': QuizQuestionsSelect<false> | QuizQuestionsSelect<true>;
     'culture-entries': CultureEntriesSelect<false> | CultureEntriesSelect<true>;
+    users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -111,7 +114,7 @@ export interface Config {
     activity: ActivityWidget;
     'upload-dropzone': UploadDropzoneWidget;
   };
-  user: Admin;
+  user: Admin | User;
   jobs: {
     tasks: unknown;
     workflows: unknown;
@@ -135,20 +138,48 @@ export interface AdminAuthOperations {
     password: string;
   };
 }
+export interface UserAuthOperations {
+  forgotPassword: {
+    email: string;
+    password: string;
+  };
+  login: {
+    email: string;
+    password: string;
+  };
+  registerFirstUser: {
+    email: string;
+    password: string;
+  };
+  unlock: {
+    email: string;
+    password: string;
+  };
+}
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "admins".
  */
 export interface Admin {
   id: number;
-  createdBy?: {
-    relationTo: 'admins';
-    value: number | Admin;
-  } | null;
-  updatedBy?: {
-    relationTo: 'admins';
-    value: number | Admin;
-  } | null;
+  createdBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null);
+  updatedBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null);
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -172,6 +203,82 @@ export interface Admin {
   collection: 'admins';
 }
 /**
+ * Public game accounts. Verified via 6-digit e-mail OTP at registration.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users".
+ */
+export interface User {
+  id: number;
+  /**
+   * Nama penjelajah yang tampil di dashboard.
+   */
+  name: string;
+  /**
+   * R2 object key of the profile picture (avatars/<userId>), served by /api/profile/avatar.
+   */
+  avatar?: string | null;
+  /**
+   * True once the registration OTP has been confirmed.
+   */
+  verified?: boolean | null;
+  /**
+   * SHA-256 of the pending OTP code plus the PAYLOAD_SECRET pepper.
+   */
+  otpHash?: string | null;
+  /**
+   * When the pending OTP code expires (10 minutes after issue).
+   */
+  otpExpires?: string | null;
+  /**
+   * Wrong-code attempts for the pending OTP (max 5).
+   */
+  otpAttempts?: number | null;
+  /**
+   * Resend cooldown: earliest time the next OTP may be sent.
+   */
+  otpNextResend?: string | null;
+  createdBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null);
+  updatedBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null);
+  updatedAt: string;
+  createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  resetPasswordRequestedAt?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+        refreshCount?: number | null;
+        refreshedAt?: string | null;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'users';
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
@@ -182,14 +289,24 @@ export interface Media {
   _h_tags?: (number | Tag)[] | null;
   prefix?: string | null;
   _objectKey?: string | null;
-  createdBy?: {
-    relationTo: 'admins';
-    value: number | Admin;
-  } | null;
-  updatedBy?: {
-    relationTo: 'admins';
-    value: number | Admin;
-  } | null;
+  createdBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null);
+  updatedBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null);
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -220,14 +337,24 @@ export interface Folder {
   id: number;
   _h_folders?: (number | null) | Folder;
   name: string;
-  createdBy?: {
-    relationTo: 'admins';
-    value: number | Admin;
-  } | null;
-  updatedBy?: {
-    relationTo: 'admins';
-    value: number | Admin;
-  } | null;
+  createdBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null);
+  updatedBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null);
   updatedAt: string;
   createdAt: string;
   _h_slugPath?: string | null;
@@ -241,14 +368,24 @@ export interface Tag {
   id: number;
   _h_tags?: (number | null) | Tag;
   name: string;
-  createdBy?: {
-    relationTo: 'admins';
-    value: number | Admin;
-  } | null;
-  updatedBy?: {
-    relationTo: 'admins';
-    value: number | Admin;
-  } | null;
+  createdBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null);
+  updatedBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null);
   updatedAt: string;
   createdAt: string;
   _h_slugPath?: string | null;
@@ -291,14 +428,24 @@ export interface Province {
    * Display order on the map and in the collection view.
    */
   order: number;
-  createdBy?: {
-    relationTo: 'admins';
-    value: number | Admin;
-  } | null;
-  updatedBy?: {
-    relationTo: 'admins';
-    value: number | Admin;
-  } | null;
+  createdBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null);
+  updatedBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null);
   updatedAt: string;
   createdAt: string;
 }
@@ -334,14 +481,24 @@ export interface CultureCard {
    * Stable identifier for links to this card.
    */
   slug: string;
-  createdBy?: {
-    relationTo: 'admins';
-    value: number | Admin;
-  } | null;
-  updatedBy?: {
-    relationTo: 'admins';
-    value: number | Admin;
-  } | null;
+  createdBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null);
+  updatedBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null);
   updatedAt: string;
   createdAt: string;
 }
@@ -379,14 +536,24 @@ export interface QuizQuestion {
    * Display order within the province quiz.
    */
   order: number;
-  createdBy?: {
-    relationTo: 'admins';
-    value: number | Admin;
-  } | null;
-  updatedBy?: {
-    relationTo: 'admins';
-    value: number | Admin;
-  } | null;
+  createdBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null);
+  updatedBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null);
   updatedAt: string;
   createdAt: string;
 }
@@ -476,14 +643,24 @@ export interface CultureEntry {
    * Record editorial checks, corrections, and cross-references before publishing.
    */
   verificationNotes?: string | null;
-  createdBy?: {
-    relationTo: 'admins';
-    value: number | Admin;
-  } | null;
-  updatedBy?: {
-    relationTo: 'admins';
-    value: number | Admin;
-  } | null;
+  createdBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null);
+  updatedBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null);
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -543,12 +720,21 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'culture-entries';
         value: number | CultureEntry;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
       } | null);
   globalSlug?: string | null;
-  user: {
-    relationTo: 'admins';
-    value: number | Admin;
-  };
+  user:
+    | {
+        relationTo: 'admins';
+        value: number | Admin;
+      }
+    | {
+        relationTo: 'users';
+        value: number | User;
+      };
   updatedAt: string;
   createdAt: string;
 }
@@ -558,10 +744,15 @@ export interface PayloadLockedDocument {
  */
 export interface PayloadPreference {
   id: number;
-  user: {
-    relationTo: 'admins';
-    value: number | Admin;
-  };
+  user:
+    | {
+        relationTo: 'admins';
+        value: number | Admin;
+      }
+    | {
+        relationTo: 'users';
+        value: number | User;
+      };
   key?: string | null;
   value?:
     | {
@@ -597,14 +788,24 @@ export interface PayloadLlmInstruction {
   entityType: 'collection' | 'global';
   additionalInstructions?: string | null;
   systemInstructions?: string | null;
-  createdBy?: {
-    relationTo: 'admins';
-    value: number | Admin;
-  } | null;
-  updatedBy?: {
-    relationTo: 'admins';
-    value: number | Admin;
-  } | null;
+  createdBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null);
+  updatedBy?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null);
   updatedAt: string;
   createdAt: string;
 }
@@ -788,6 +989,40 @@ export interface CultureEntriesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users_select".
+ */
+export interface UsersSelect<T extends boolean = true> {
+  name?: T;
+  avatar?: T;
+  verified?: T;
+  otpHash?: T;
+  otpExpires?: T;
+  otpAttempts?: T;
+  otpNextResend?: T;
+  createdBy?: T;
+  updatedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  resetPasswordRequestedAt?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+        refreshCount?: T;
+        refreshedAt?: T;
+      };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
@@ -870,7 +1105,15 @@ export interface CollectionQueryWidget {
   data?: {
     title?: string | null;
     relatedCollection:
-      'admins' | 'media' | 'folders' | 'tags' | 'provinces' | 'culture-cards' | 'quiz-questions' | 'culture-entries';
+      | 'admins'
+      | 'media'
+      | 'folders'
+      | 'tags'
+      | 'provinces'
+      | 'culture-cards'
+      | 'quiz-questions'
+      | 'culture-entries'
+      | 'users';
     where?:
       | {
           [k: string]: unknown;
@@ -894,7 +1137,15 @@ export interface ActivityWidget {
   data?: {
     excludedCollections?:
       | (
-          'admins' | 'media' | 'folders' | 'tags' | 'provinces' | 'culture-cards' | 'quiz-questions' | 'culture-entries'
+          | 'admins'
+          | 'media'
+          | 'folders'
+          | 'tags'
+          | 'provinces'
+          | 'culture-cards'
+          | 'quiz-questions'
+          | 'culture-entries'
+          | 'users'
         )[]
       | null;
   };

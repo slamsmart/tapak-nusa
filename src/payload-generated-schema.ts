@@ -81,12 +81,14 @@ export const admins_rels = sqliteTable(
     parent: integer('parent_id').notNull(),
     path: text('path').notNull(),
     adminsID: integer('admins_id'),
+    usersID: integer('users_id'),
   },
   (columns) => [
     index('admins_rels_order_idx').on(columns.order),
     index('admins_rels_parent_idx').on(columns.parent),
     index('admins_rels_path_idx').on(columns.path),
     index('admins_rels_admins_id_idx').on(columns.adminsID),
+    index('admins_rels_users_id_idx').on(columns.usersID),
     foreignKey({
       columns: [columns['parent']],
       foreignColumns: [admins.id],
@@ -96,6 +98,11 @@ export const admins_rels = sqliteTable(
       columns: [columns['adminsID']],
       foreignColumns: [admins.id],
       name: 'admins_rels_admins_fk',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [columns['usersID']],
+      foreignColumns: [users.id],
+      name: 'admins_rels_users_fk',
     }).onDelete('cascade'),
   ],
 )
@@ -152,6 +159,7 @@ export const media_rels = sqliteTable(
     path: text('path').notNull(),
     tagsID: integer('tags_id'),
     adminsID: integer('admins_id'),
+    usersID: integer('users_id'),
   },
   (columns) => [
     index('media_rels_order_idx').on(columns.order),
@@ -159,6 +167,7 @@ export const media_rels = sqliteTable(
     index('media_rels_path_idx').on(columns.path),
     index('media_rels_tags_id_idx').on(columns.tagsID),
     index('media_rels_admins_id_idx').on(columns.adminsID),
+    index('media_rels_users_id_idx').on(columns.usersID),
     foreignKey({
       columns: [columns['parent']],
       foreignColumns: [media.id],
@@ -173,6 +182,11 @@ export const media_rels = sqliteTable(
       columns: [columns['adminsID']],
       foreignColumns: [admins.id],
       name: 'media_rels_admins_fk',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [columns['usersID']],
+      foreignColumns: [users.id],
+      name: 'media_rels_users_fk',
     }).onDelete('cascade'),
   ],
 )
@@ -243,6 +257,7 @@ export const _media_v_rels = sqliteTable(
     path: text('path').notNull(),
     tagsID: integer('tags_id'),
     adminsID: integer('admins_id'),
+    usersID: integer('users_id'),
   },
   (columns) => [
     index('_media_v_rels_order_idx').on(columns.order),
@@ -250,6 +265,7 @@ export const _media_v_rels = sqliteTable(
     index('_media_v_rels_path_idx').on(columns.path),
     index('_media_v_rels_tags_id_idx').on(columns.tagsID),
     index('_media_v_rels_admins_id_idx').on(columns.adminsID),
+    index('_media_v_rels_users_id_idx').on(columns.usersID),
     foreignKey({
       columns: [columns['parent']],
       foreignColumns: [_media_v.id],
@@ -264,6 +280,11 @@ export const _media_v_rels = sqliteTable(
       columns: [columns['adminsID']],
       foreignColumns: [admins.id],
       name: '_media_v_rels_admins_fk',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [columns['usersID']],
+      foreignColumns: [users.id],
+      name: '_media_v_rels_users_fk',
     }).onDelete('cascade'),
   ],
 )
@@ -298,12 +319,14 @@ export const folders_rels = sqliteTable(
     parent: integer('parent_id').notNull(),
     path: text('path').notNull(),
     adminsID: integer('admins_id'),
+    usersID: integer('users_id'),
   },
   (columns) => [
     index('folders_rels_order_idx').on(columns.order),
     index('folders_rels_parent_idx').on(columns.parent),
     index('folders_rels_path_idx').on(columns.path),
     index('folders_rels_admins_id_idx').on(columns.adminsID),
+    index('folders_rels_users_id_idx').on(columns.usersID),
     foreignKey({
       columns: [columns['parent']],
       foreignColumns: [folders.id],
@@ -313,6 +336,11 @@ export const folders_rels = sqliteTable(
       columns: [columns['adminsID']],
       foreignColumns: [admins.id],
       name: 'folders_rels_admins_fk',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [columns['usersID']],
+      foreignColumns: [users.id],
+      name: 'folders_rels_users_fk',
     }).onDelete('cascade'),
   ],
 )
@@ -359,12 +387,14 @@ export const _folders_v_rels = sqliteTable(
     parent: integer('parent_id').notNull(),
     path: text('path').notNull(),
     adminsID: integer('admins_id'),
+    usersID: integer('users_id'),
   },
   (columns) => [
     index('_folders_v_rels_order_idx').on(columns.order),
     index('_folders_v_rels_parent_idx').on(columns.parent),
     index('_folders_v_rels_path_idx').on(columns.path),
     index('_folders_v_rels_admins_id_idx').on(columns.adminsID),
+    index('_folders_v_rels_users_id_idx').on(columns.usersID),
     foreignKey({
       columns: [columns['parent']],
       foreignColumns: [_folders_v.id],
@@ -374,6 +404,11 @@ export const _folders_v_rels = sqliteTable(
       columns: [columns['adminsID']],
       foreignColumns: [admins.id],
       name: '_folders_v_rels_admins_fk',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [columns['usersID']],
+      foreignColumns: [users.id],
+      name: '_folders_v_rels_users_fk',
     }).onDelete('cascade'),
   ],
 )
@@ -408,12 +443,14 @@ export const tags_rels = sqliteTable(
     parent: integer('parent_id').notNull(),
     path: text('path').notNull(),
     adminsID: integer('admins_id'),
+    usersID: integer('users_id'),
   },
   (columns) => [
     index('tags_rels_order_idx').on(columns.order),
     index('tags_rels_parent_idx').on(columns.parent),
     index('tags_rels_path_idx').on(columns.path),
     index('tags_rels_admins_id_idx').on(columns.adminsID),
+    index('tags_rels_users_id_idx').on(columns.usersID),
     foreignKey({
       columns: [columns['parent']],
       foreignColumns: [tags.id],
@@ -423,6 +460,11 @@ export const tags_rels = sqliteTable(
       columns: [columns['adminsID']],
       foreignColumns: [admins.id],
       name: 'tags_rels_admins_fk',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [columns['usersID']],
+      foreignColumns: [users.id],
+      name: 'tags_rels_users_fk',
     }).onDelete('cascade'),
   ],
 )
@@ -469,12 +511,14 @@ export const _tags_v_rels = sqliteTable(
     parent: integer('parent_id').notNull(),
     path: text('path').notNull(),
     adminsID: integer('admins_id'),
+    usersID: integer('users_id'),
   },
   (columns) => [
     index('_tags_v_rels_order_idx').on(columns.order),
     index('_tags_v_rels_parent_idx').on(columns.parent),
     index('_tags_v_rels_path_idx').on(columns.path),
     index('_tags_v_rels_admins_id_idx').on(columns.adminsID),
+    index('_tags_v_rels_users_id_idx').on(columns.usersID),
     foreignKey({
       columns: [columns['parent']],
       foreignColumns: [_tags_v.id],
@@ -484,6 +528,11 @@ export const _tags_v_rels = sqliteTable(
       columns: [columns['adminsID']],
       foreignColumns: [admins.id],
       name: '_tags_v_rels_admins_fk',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [columns['usersID']],
+      foreignColumns: [users.id],
+      name: '_tags_v_rels_users_fk',
     }).onDelete('cascade'),
   ],
 )
@@ -529,12 +578,14 @@ export const provinces_rels = sqliteTable(
     parent: integer('parent_id').notNull(),
     path: text('path').notNull(),
     adminsID: integer('admins_id'),
+    usersID: integer('users_id'),
   },
   (columns) => [
     index('provinces_rels_order_idx').on(columns.order),
     index('provinces_rels_parent_idx').on(columns.parent),
     index('provinces_rels_path_idx').on(columns.path),
     index('provinces_rels_admins_id_idx').on(columns.adminsID),
+    index('provinces_rels_users_id_idx').on(columns.usersID),
     foreignKey({
       columns: [columns['parent']],
       foreignColumns: [provinces.id],
@@ -544,6 +595,11 @@ export const provinces_rels = sqliteTable(
       columns: [columns['adminsID']],
       foreignColumns: [admins.id],
       name: 'provinces_rels_admins_fk',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [columns['usersID']],
+      foreignColumns: [users.id],
+      name: 'provinces_rels_users_fk',
     }).onDelete('cascade'),
   ],
 )
@@ -601,12 +657,14 @@ export const _provinces_v_rels = sqliteTable(
     parent: integer('parent_id').notNull(),
     path: text('path').notNull(),
     adminsID: integer('admins_id'),
+    usersID: integer('users_id'),
   },
   (columns) => [
     index('_provinces_v_rels_order_idx').on(columns.order),
     index('_provinces_v_rels_parent_idx').on(columns.parent),
     index('_provinces_v_rels_path_idx').on(columns.path),
     index('_provinces_v_rels_admins_id_idx').on(columns.adminsID),
+    index('_provinces_v_rels_users_id_idx').on(columns.usersID),
     foreignKey({
       columns: [columns['parent']],
       foreignColumns: [_provinces_v.id],
@@ -616,6 +674,11 @@ export const _provinces_v_rels = sqliteTable(
       columns: [columns['adminsID']],
       foreignColumns: [admins.id],
       name: '_provinces_v_rels_admins_fk',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [columns['usersID']],
+      foreignColumns: [users.id],
+      name: '_provinces_v_rels_users_fk',
     }).onDelete('cascade'),
   ],
 )
@@ -665,12 +728,14 @@ export const culture_cards_rels = sqliteTable(
     parent: integer('parent_id').notNull(),
     path: text('path').notNull(),
     adminsID: integer('admins_id'),
+    usersID: integer('users_id'),
   },
   (columns) => [
     index('culture_cards_rels_order_idx').on(columns.order),
     index('culture_cards_rels_parent_idx').on(columns.parent),
     index('culture_cards_rels_path_idx').on(columns.path),
     index('culture_cards_rels_admins_id_idx').on(columns.adminsID),
+    index('culture_cards_rels_users_id_idx').on(columns.usersID),
     foreignKey({
       columns: [columns['parent']],
       foreignColumns: [culture_cards.id],
@@ -680,6 +745,11 @@ export const culture_cards_rels = sqliteTable(
       columns: [columns['adminsID']],
       foreignColumns: [admins.id],
       name: 'culture_cards_rels_admins_fk',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [columns['usersID']],
+      foreignColumns: [users.id],
+      name: 'culture_cards_rels_users_fk',
     }).onDelete('cascade'),
   ],
 )
@@ -741,12 +811,14 @@ export const _culture_cards_v_rels = sqliteTable(
     parent: integer('parent_id').notNull(),
     path: text('path').notNull(),
     adminsID: integer('admins_id'),
+    usersID: integer('users_id'),
   },
   (columns) => [
     index('_culture_cards_v_rels_order_idx').on(columns.order),
     index('_culture_cards_v_rels_parent_idx').on(columns.parent),
     index('_culture_cards_v_rels_path_idx').on(columns.path),
     index('_culture_cards_v_rels_admins_id_idx').on(columns.adminsID),
+    index('_culture_cards_v_rels_users_id_idx').on(columns.usersID),
     foreignKey({
       columns: [columns['parent']],
       foreignColumns: [_culture_cards_v.id],
@@ -756,6 +828,11 @@ export const _culture_cards_v_rels = sqliteTable(
       columns: [columns['adminsID']],
       foreignColumns: [admins.id],
       name: '_culture_cards_v_rels_admins_fk',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [columns['usersID']],
+      foreignColumns: [users.id],
+      name: '_culture_cards_v_rels_users_fk',
     }).onDelete('cascade'),
   ],
 )
@@ -821,12 +898,14 @@ export const quiz_questions_rels = sqliteTable(
     parent: integer('parent_id').notNull(),
     path: text('path').notNull(),
     adminsID: integer('admins_id'),
+    usersID: integer('users_id'),
   },
   (columns) => [
     index('quiz_questions_rels_order_idx').on(columns.order),
     index('quiz_questions_rels_parent_idx').on(columns.parent),
     index('quiz_questions_rels_path_idx').on(columns.path),
     index('quiz_questions_rels_admins_id_idx').on(columns.adminsID),
+    index('quiz_questions_rels_users_id_idx').on(columns.usersID),
     foreignKey({
       columns: [columns['parent']],
       foreignColumns: [quiz_questions.id],
@@ -836,6 +915,11 @@ export const quiz_questions_rels = sqliteTable(
       columns: [columns['adminsID']],
       foreignColumns: [admins.id],
       name: 'quiz_questions_rels_admins_fk',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [columns['usersID']],
+      foreignColumns: [users.id],
+      name: 'quiz_questions_rels_users_fk',
     }).onDelete('cascade'),
   ],
 )
@@ -914,12 +998,14 @@ export const _quiz_questions_v_rels = sqliteTable(
     parent: integer('parent_id').notNull(),
     path: text('path').notNull(),
     adminsID: integer('admins_id'),
+    usersID: integer('users_id'),
   },
   (columns) => [
     index('_quiz_questions_v_rels_order_idx').on(columns.order),
     index('_quiz_questions_v_rels_parent_idx').on(columns.parent),
     index('_quiz_questions_v_rels_path_idx').on(columns.path),
     index('_quiz_questions_v_rels_admins_id_idx').on(columns.adminsID),
+    index('_quiz_questions_v_rels_users_id_idx').on(columns.usersID),
     foreignKey({
       columns: [columns['parent']],
       foreignColumns: [_quiz_questions_v.id],
@@ -929,6 +1015,11 @@ export const _quiz_questions_v_rels = sqliteTable(
       columns: [columns['adminsID']],
       foreignColumns: [admins.id],
       name: '_quiz_questions_v_rels_admins_fk',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [columns['usersID']],
+      foreignColumns: [users.id],
+      name: '_quiz_questions_v_rels_users_fk',
     }).onDelete('cascade'),
   ],
 )
@@ -1034,12 +1125,14 @@ export const culture_entries_rels = sqliteTable(
     parent: integer('parent_id').notNull(),
     path: text('path').notNull(),
     adminsID: integer('admins_id'),
+    usersID: integer('users_id'),
   },
   (columns) => [
     index('culture_entries_rels_order_idx').on(columns.order),
     index('culture_entries_rels_parent_idx').on(columns.parent),
     index('culture_entries_rels_path_idx').on(columns.path),
     index('culture_entries_rels_admins_id_idx').on(columns.adminsID),
+    index('culture_entries_rels_users_id_idx').on(columns.usersID),
     foreignKey({
       columns: [columns['parent']],
       foreignColumns: [culture_entries.id],
@@ -1049,6 +1142,11 @@ export const culture_entries_rels = sqliteTable(
       columns: [columns['adminsID']],
       foreignColumns: [admins.id],
       name: 'culture_entries_rels_admins_fk',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [columns['usersID']],
+      foreignColumns: [users.id],
+      name: 'culture_entries_rels_users_fk',
     }).onDelete('cascade'),
   ],
 )
@@ -1172,12 +1270,14 @@ export const _culture_entries_v_rels = sqliteTable(
     parent: integer('parent_id').notNull(),
     path: text('path').notNull(),
     adminsID: integer('admins_id'),
+    usersID: integer('users_id'),
   },
   (columns) => [
     index('_culture_entries_v_rels_order_idx').on(columns.order),
     index('_culture_entries_v_rels_parent_idx').on(columns.parent),
     index('_culture_entries_v_rels_path_idx').on(columns.path),
     index('_culture_entries_v_rels_admins_id_idx').on(columns.adminsID),
+    index('_culture_entries_v_rels_users_id_idx').on(columns.usersID),
     foreignKey({
       columns: [columns['parent']],
       foreignColumns: [_culture_entries_v.id],
@@ -1187,6 +1287,106 @@ export const _culture_entries_v_rels = sqliteTable(
       columns: [columns['adminsID']],
       foreignColumns: [admins.id],
       name: '_culture_entries_v_rels_admins_fk',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [columns['usersID']],
+      foreignColumns: [users.id],
+      name: '_culture_entries_v_rels_users_fk',
+    }).onDelete('cascade'),
+  ],
+)
+
+export const users_sessions = sqliteTable(
+  'users_sessions',
+  {
+    _order: integer('_order').notNull(),
+    _parentID: integer('_parent_id').notNull(),
+    id: text('id').primaryKey(),
+    createdAt: text('created_at').default(sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`),
+    expiresAt: text('expires_at')
+      .notNull()
+      .default(sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`),
+    refreshCount: numeric('refresh_count', { mode: 'number' }),
+    refreshedAt: text('refreshed_at').default(sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`),
+  },
+  (columns) => [
+    index('users_sessions_order_idx').on(columns._order),
+    index('users_sessions_parent_id_idx').on(columns._parentID),
+    foreignKey({
+      columns: [columns['_parentID']],
+      foreignColumns: [users.id],
+      name: 'users_sessions_parent_id_fk',
+    }).onDelete('cascade'),
+  ],
+)
+
+export const users = sqliteTable(
+  'users',
+  {
+    id: integer('id').primaryKey(),
+    name: text('name').notNull(),
+    avatar: text('avatar'),
+    verified: integer('verified', { mode: 'boolean' }).default(false),
+    otpHash: text('otp_hash'),
+    otpExpires: text('otp_expires').default(sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`),
+    otpAttempts: numeric('otp_attempts', { mode: 'number' }),
+    otpNextResend: text('otp_next_resend').default(sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`),
+    updatedAt: text('updated_at')
+      .notNull()
+      .default(sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`),
+    createdAt: text('created_at')
+      .notNull()
+      .default(sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`),
+    email: text('email').notNull(),
+    resetPasswordToken: text('reset_password_token'),
+    resetPasswordExpiration: text('reset_password_expiration').default(
+      sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`,
+    ),
+    salt: text('salt'),
+    hash: text('hash'),
+    resetPasswordRequestedAt: text('reset_password_requested_at').default(
+      sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`,
+    ),
+    loginAttempts: numeric('login_attempts', { mode: 'number' }).default(0),
+    lockUntil: text('lock_until').default(sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`),
+  },
+  (columns) => [
+    index('users_updated_at_idx').on(columns.updatedAt),
+    index('users_created_at_idx').on(columns.createdAt),
+    uniqueIndex('users_email_idx').on(columns.email),
+  ],
+)
+
+export const users_rels = sqliteTable(
+  'users_rels',
+  {
+    id: integer('id').primaryKey(),
+    order: integer('order'),
+    parent: integer('parent_id').notNull(),
+    path: text('path').notNull(),
+    adminsID: integer('admins_id'),
+    usersID: integer('users_id'),
+  },
+  (columns) => [
+    index('users_rels_order_idx').on(columns.order),
+    index('users_rels_parent_idx').on(columns.parent),
+    index('users_rels_path_idx').on(columns.path),
+    index('users_rels_admins_id_idx').on(columns.adminsID),
+    index('users_rels_users_id_idx').on(columns.usersID),
+    foreignKey({
+      columns: [columns['parent']],
+      foreignColumns: [users.id],
+      name: 'users_rels_parent_fk',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [columns['adminsID']],
+      foreignColumns: [admins.id],
+      name: 'users_rels_admins_fk',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [columns['usersID']],
+      foreignColumns: [users.id],
+      name: 'users_rels_users_fk',
     }).onDelete('cascade'),
   ],
 )
@@ -1235,6 +1435,7 @@ export const payload_locked_documents_rels = sqliteTable(
     'culture-cardsID': integer('culture_cards_id'),
     'quiz-questionsID': integer('quiz_questions_id'),
     'culture-entriesID': integer('culture_entries_id'),
+    usersID: integer('users_id'),
   },
   (columns) => [
     index('payload_locked_documents_rels_order_idx').on(columns.order),
@@ -1248,6 +1449,7 @@ export const payload_locked_documents_rels = sqliteTable(
     index('payload_locked_documents_rels_culture_cards_id_idx').on(columns['culture-cardsID']),
     index('payload_locked_documents_rels_quiz_questions_id_idx').on(columns['quiz-questionsID']),
     index('payload_locked_documents_rels_culture_entries_id_idx').on(columns['culture-entriesID']),
+    index('payload_locked_documents_rels_users_id_idx').on(columns.usersID),
     foreignKey({
       columns: [columns['parent']],
       foreignColumns: [payload_locked_documents.id],
@@ -1293,6 +1495,11 @@ export const payload_locked_documents_rels = sqliteTable(
       foreignColumns: [culture_entries.id],
       name: 'payload_locked_documents_rels_culture_entries_fk',
     }).onDelete('cascade'),
+    foreignKey({
+      columns: [columns['usersID']],
+      foreignColumns: [users.id],
+      name: 'payload_locked_documents_rels_users_fk',
+    }).onDelete('cascade'),
   ],
 )
 
@@ -1324,12 +1531,14 @@ export const payload_preferences_rels = sqliteTable(
     parent: integer('parent_id').notNull(),
     path: text('path').notNull(),
     adminsID: integer('admins_id'),
+    usersID: integer('users_id'),
   },
   (columns) => [
     index('payload_preferences_rels_order_idx').on(columns.order),
     index('payload_preferences_rels_parent_idx').on(columns.parent),
     index('payload_preferences_rels_path_idx').on(columns.path),
     index('payload_preferences_rels_admins_id_idx').on(columns.adminsID),
+    index('payload_preferences_rels_users_id_idx').on(columns.usersID),
     foreignKey({
       columns: [columns['parent']],
       foreignColumns: [payload_preferences.id],
@@ -1339,6 +1548,11 @@ export const payload_preferences_rels = sqliteTable(
       columns: [columns['adminsID']],
       foreignColumns: [admins.id],
       name: 'payload_preferences_rels_admins_fk',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [columns['usersID']],
+      foreignColumns: [users.id],
+      name: 'payload_preferences_rels_users_fk',
     }).onDelete('cascade'),
   ],
 )
@@ -1391,12 +1605,14 @@ export const payload_llm_instructions_rels = sqliteTable(
     parent: text('parent_id').notNull(),
     path: text('path').notNull(),
     adminsID: integer('admins_id'),
+    usersID: integer('users_id'),
   },
   (columns) => [
     index('payload_llm_instructions_rels_order_idx').on(columns.order),
     index('payload_llm_instructions_rels_parent_idx').on(columns.parent),
     index('payload_llm_instructions_rels_path_idx').on(columns.path),
     index('payload_llm_instructions_rels_admins_id_idx').on(columns.adminsID),
+    index('payload_llm_instructions_rels_users_id_idx').on(columns.usersID),
     foreignKey({
       columns: [columns['parent']],
       foreignColumns: [payload_llm_instructions.id],
@@ -1406,6 +1622,11 @@ export const payload_llm_instructions_rels = sqliteTable(
       columns: [columns['adminsID']],
       foreignColumns: [admins.id],
       name: 'payload_llm_instructions_rels_admins_fk',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [columns['usersID']],
+      foreignColumns: [users.id],
+      name: 'payload_llm_instructions_rels_users_fk',
     }).onDelete('cascade'),
   ],
 )
@@ -1427,6 +1648,11 @@ export const relations_admins_rels = relations(admins_rels, ({ one }) => ({
     fields: [admins_rels.adminsID],
     references: [admins.id],
     relationName: 'admins',
+  }),
+  usersID: one(users, {
+    fields: [admins_rels.usersID],
+    references: [users.id],
+    relationName: 'users',
   }),
 }))
 export const relations_admins = relations(admins, ({ many }) => ({
@@ -1452,6 +1678,11 @@ export const relations_media_rels = relations(media_rels, ({ one }) => ({
     fields: [media_rels.adminsID],
     references: [admins.id],
     relationName: 'admins',
+  }),
+  usersID: one(users, {
+    fields: [media_rels.usersID],
+    references: [users.id],
+    relationName: 'users',
   }),
 }))
 export const relations_media = relations(media, ({ one, many }) => ({
@@ -1480,6 +1711,11 @@ export const relations__media_v_rels = relations(_media_v_rels, ({ one }) => ({
     references: [admins.id],
     relationName: 'admins',
   }),
+  usersID: one(users, {
+    fields: [_media_v_rels.usersID],
+    references: [users.id],
+    relationName: 'users',
+  }),
 }))
 export const relations__media_v = relations(_media_v, ({ one, many }) => ({
   parent: one(media, {
@@ -1507,6 +1743,11 @@ export const relations_folders_rels = relations(folders_rels, ({ one }) => ({
     references: [admins.id],
     relationName: 'admins',
   }),
+  usersID: one(users, {
+    fields: [folders_rels.usersID],
+    references: [users.id],
+    relationName: 'users',
+  }),
 }))
 export const relations_folders = relations(folders, ({ one, many }) => ({
   _h_folders: one(folders, {
@@ -1528,6 +1769,11 @@ export const relations__folders_v_rels = relations(_folders_v_rels, ({ one }) =>
     fields: [_folders_v_rels.adminsID],
     references: [admins.id],
     relationName: 'admins',
+  }),
+  usersID: one(users, {
+    fields: [_folders_v_rels.usersID],
+    references: [users.id],
+    relationName: 'users',
   }),
 }))
 export const relations__folders_v = relations(_folders_v, ({ one, many }) => ({
@@ -1556,6 +1802,11 @@ export const relations_tags_rels = relations(tags_rels, ({ one }) => ({
     references: [admins.id],
     relationName: 'admins',
   }),
+  usersID: one(users, {
+    fields: [tags_rels.usersID],
+    references: [users.id],
+    relationName: 'users',
+  }),
 }))
 export const relations_tags = relations(tags, ({ one, many }) => ({
   _h_tags: one(tags, {
@@ -1577,6 +1828,11 @@ export const relations__tags_v_rels = relations(_tags_v_rels, ({ one }) => ({
     fields: [_tags_v_rels.adminsID],
     references: [admins.id],
     relationName: 'admins',
+  }),
+  usersID: one(users, {
+    fields: [_tags_v_rels.usersID],
+    references: [users.id],
+    relationName: 'users',
   }),
 }))
 export const relations__tags_v = relations(_tags_v, ({ one, many }) => ({
@@ -1605,6 +1861,11 @@ export const relations_provinces_rels = relations(provinces_rels, ({ one }) => (
     references: [admins.id],
     relationName: 'admins',
   }),
+  usersID: one(users, {
+    fields: [provinces_rels.usersID],
+    references: [users.id],
+    relationName: 'users',
+  }),
 }))
 export const relations_provinces = relations(provinces, ({ many }) => ({
   _rels: many(provinces_rels, {
@@ -1621,6 +1882,11 @@ export const relations__provinces_v_rels = relations(_provinces_v_rels, ({ one }
     fields: [_provinces_v_rels.adminsID],
     references: [admins.id],
     relationName: 'admins',
+  }),
+  usersID: one(users, {
+    fields: [_provinces_v_rels.usersID],
+    references: [users.id],
+    relationName: 'users',
   }),
 }))
 export const relations__provinces_v = relations(_provinces_v, ({ one, many }) => ({
@@ -1643,6 +1909,11 @@ export const relations_culture_cards_rels = relations(culture_cards_rels, ({ one
     fields: [culture_cards_rels.adminsID],
     references: [admins.id],
     relationName: 'admins',
+  }),
+  usersID: one(users, {
+    fields: [culture_cards_rels.usersID],
+    references: [users.id],
+    relationName: 'users',
   }),
 }))
 export const relations_culture_cards = relations(culture_cards, ({ one, many }) => ({
@@ -1670,6 +1941,11 @@ export const relations__culture_cards_v_rels = relations(_culture_cards_v_rels, 
     fields: [_culture_cards_v_rels.adminsID],
     references: [admins.id],
     relationName: 'admins',
+  }),
+  usersID: one(users, {
+    fields: [_culture_cards_v_rels.usersID],
+    references: [users.id],
+    relationName: 'users',
   }),
 }))
 export const relations__culture_cards_v = relations(_culture_cards_v, ({ one, many }) => ({
@@ -1709,6 +1985,11 @@ export const relations_quiz_questions_rels = relations(quiz_questions_rels, ({ o
     fields: [quiz_questions_rels.adminsID],
     references: [admins.id],
     relationName: 'admins',
+  }),
+  usersID: one(users, {
+    fields: [quiz_questions_rels.usersID],
+    references: [users.id],
+    relationName: 'users',
   }),
 }))
 export const relations_quiz_questions = relations(quiz_questions, ({ one, many }) => ({
@@ -1750,6 +2031,11 @@ export const relations__quiz_questions_v_rels = relations(_quiz_questions_v_rels
     references: [admins.id],
     relationName: 'admins',
   }),
+  usersID: one(users, {
+    fields: [_quiz_questions_v_rels.usersID],
+    references: [users.id],
+    relationName: 'users',
+  }),
 }))
 export const relations__quiz_questions_v = relations(_quiz_questions_v, ({ one, many }) => ({
   parent: one(quiz_questions, {
@@ -1785,6 +2071,11 @@ export const relations_culture_entries_rels = relations(culture_entries_rels, ({
     references: [admins.id],
     relationName: 'admins',
   }),
+  usersID: one(users, {
+    fields: [culture_entries_rels.usersID],
+    references: [users.id],
+    relationName: 'users',
+  }),
 }))
 export const relations_culture_entries = relations(culture_entries, ({ one, many }) => ({
   image: one(media, {
@@ -1807,6 +2098,11 @@ export const relations__culture_entries_v_rels = relations(_culture_entries_v_re
     references: [admins.id],
     relationName: 'admins',
   }),
+  usersID: one(users, {
+    fields: [_culture_entries_v_rels.usersID],
+    references: [users.id],
+    relationName: 'users',
+  }),
 }))
 export const relations__culture_entries_v = relations(_culture_entries_v, ({ one, many }) => ({
   parent: one(culture_entries, {
@@ -1820,6 +2116,38 @@ export const relations__culture_entries_v = relations(_culture_entries_v, ({ one
     relationName: 'version_image',
   }),
   _rels: many(_culture_entries_v_rels, {
+    relationName: '_rels',
+  }),
+}))
+export const relations_users_sessions = relations(users_sessions, ({ one }) => ({
+  _parentID: one(users, {
+    fields: [users_sessions._parentID],
+    references: [users.id],
+    relationName: 'sessions',
+  }),
+}))
+export const relations_users_rels = relations(users_rels, ({ one }) => ({
+  parent: one(users, {
+    fields: [users_rels.parent],
+    references: [users.id],
+    relationName: '_rels',
+  }),
+  adminsID: one(admins, {
+    fields: [users_rels.adminsID],
+    references: [admins.id],
+    relationName: 'admins',
+  }),
+  usersID: one(users, {
+    fields: [users_rels.usersID],
+    references: [users.id],
+    relationName: 'users',
+  }),
+}))
+export const relations_users = relations(users, ({ many }) => ({
+  sessions: many(users_sessions, {
+    relationName: 'sessions',
+  }),
+  _rels: many(users_rels, {
     relationName: '_rels',
   }),
 }))
@@ -1872,6 +2200,11 @@ export const relations_payload_locked_documents_rels = relations(
       references: [culture_entries.id],
       relationName: 'culture-entries',
     }),
+    usersID: one(users, {
+      fields: [payload_locked_documents_rels.usersID],
+      references: [users.id],
+      relationName: 'users',
+    }),
   }),
 )
 export const relations_payload_locked_documents = relations(
@@ -1895,6 +2228,11 @@ export const relations_payload_preferences_rels = relations(
       references: [admins.id],
       relationName: 'admins',
     }),
+    usersID: one(users, {
+      fields: [payload_preferences_rels.usersID],
+      references: [users.id],
+      relationName: 'users',
+    }),
   }),
 )
 export const relations_payload_preferences = relations(payload_preferences, ({ many }) => ({
@@ -1915,6 +2253,11 @@ export const relations_payload_llm_instructions_rels = relations(
       fields: [payload_llm_instructions_rels.adminsID],
       references: [admins.id],
       relationName: 'admins',
+    }),
+    usersID: one(users, {
+      fields: [payload_llm_instructions_rels.usersID],
+      references: [users.id],
+      relationName: 'users',
     }),
   }),
 )
@@ -1961,6 +2304,9 @@ type DatabaseSchema = {
   culture_entries_rels: typeof culture_entries_rels
   _culture_entries_v: typeof _culture_entries_v
   _culture_entries_v_rels: typeof _culture_entries_v_rels
+  users_sessions: typeof users_sessions
+  users: typeof users
+  users_rels: typeof users_rels
   payload_kv: typeof payload_kv
   payload_locked_documents: typeof payload_locked_documents
   payload_locked_documents_rels: typeof payload_locked_documents_rels
@@ -2002,6 +2348,9 @@ type DatabaseSchema = {
   relations_culture_entries: typeof relations_culture_entries
   relations__culture_entries_v_rels: typeof relations__culture_entries_v_rels
   relations__culture_entries_v: typeof relations__culture_entries_v
+  relations_users_sessions: typeof relations_users_sessions
+  relations_users_rels: typeof relations_users_rels
+  relations_users: typeof relations_users
   relations_payload_kv: typeof relations_payload_kv
   relations_payload_locked_documents_rels: typeof relations_payload_locked_documents_rels
   relations_payload_locked_documents: typeof relations_payload_locked_documents

@@ -10,6 +10,7 @@ import { Folders } from './collections/Folders'
 import { Media } from './collections/Media'
 import { Provinces } from './collections/Provinces'
 import { QuizQuestions } from './collections/QuizQuestions'
+import { Users } from './collections/Users'
 import { Tags } from './collections/Tags'
 import { getBindings } from './lib/cloudflare'
 
@@ -59,6 +60,7 @@ export default buildConfig({
     CultureCards,
     QuizQuestions,
     CultureEntries,
+    Users,
   ],
   db: sqliteD1Adapter({ binding: DB }),
   secret,

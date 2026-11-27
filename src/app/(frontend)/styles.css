@@ -894,11 +894,11 @@ input:focus-visible {
 }
 .pin-anchor.pin-dim .pin {
   opacity: 0.22;
-  transform: translate(-15px, -15px) scale(0.85);
+  transform: translate(-13px, -13px) scale(0.85);
 }
 .pin > span > svg {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
 }
 .map-title {
   pointer-events: none;
@@ -935,47 +935,67 @@ input:focus-visible {
 .pin {
   position: absolute;
   z-index: 5;
-  /* The 30px teardrop's center sits exactly on the marker coordinate, so the
-     label hangs off to the side without shifting the pin off its province. */
-  transform: translate(-15px, -15px);
+  /* The 26px teardrop's center sits exactly on the marker coordinate. The
+     province label is absolutely positioned, so it never widens the pin's hit
+     area or shifts the teardrop off its province. */
+  transform: translate(-13px, -13px);
   border: 0;
   background: transparent;
   display: flex;
   align-items: center;
-  gap: 7px;
   color: #355a50;
   white-space: nowrap;
 }
-.pin.flip {
-  flex-direction: row-reverse;
-}
 .pin > span {
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   border-radius: 50% 50% 50% 4px;
   transform: rotate(-45deg);
   background: var(--pin);
   color: white;
   display: grid;
   place-items: center;
+  font:
+    800 12px/1 'DM Sans',
+    Arial,
+    sans-serif;
   box-shadow: 0 3px 8px #274c4240;
   border: 2px solid #fff;
 }
 .pin > span > * {
   transform: rotate(45deg);
 }
+/* Province name: revealed only while the cursor (or keyboard focus) is on the
+   pin, so 38 pins do not blanket the map with labels. */
 .pin > b {
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 6px);
+  transform: translateY(-50%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
   background: rgba(255, 255, 255, 0.94);
-  padding: 6px 9px;
+  padding: 5px 8px;
   border: 1px solid rgba(63, 91, 80, 0.13);
   border-radius: 7px;
   font-size: 10px;
   color: #26443a;
   box-shadow: 0 3px 10px rgba(48, 87, 71, 0.18);
+  transition: opacity 0.16s ease;
+}
+.pin.flip > b {
+  left: auto;
+  right: calc(100% + 6px);
 }
 .pin:hover,
 .pin:focus-visible {
   z-index: 9;
+}
+.pin:hover > b,
+.pin:focus-visible > b {
+  opacity: 1;
+  visibility: visible;
 }
 .pin.open > span {
   animation: pulse 2s infinite;
@@ -1276,7 +1296,7 @@ input:focus-visible {
   min-height: 560px;
   position: relative;
   overflow: hidden;
-  background: #d9ddd8;
+  background: #881337;
 }
 .knowledge-art:after {
   content: '';
@@ -4828,6 +4848,33 @@ body:has(.nusa-dashboard) .pwa-install {
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
     0 18px 44px -26px rgba(13, 92, 70, 0.38);
 }
+.avatar-edit {
+  position: absolute;
+  z-index: 10;
+  right: -2px;
+  bottom: -2px;
+  width: 26px;
+  height: 26px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #0d5c46;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition:
+    transform 0.16s ease,
+    background 0.16s ease;
+}
+.avatar-edit:hover {
+  background: #e11d48;
+  transform: scale(1.08);
+}
+.avatar-edit:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
 .nusa-dashboard .map-ocean {
   background: radial-gradient(circle at 35% 40%, #cbe8ec 0%, #a9d6de 48%, #8ac3ce 100%);
 }
