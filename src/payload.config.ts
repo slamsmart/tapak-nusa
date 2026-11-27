@@ -62,7 +62,10 @@ export default buildConfig({
     CultureEntries,
     Users,
   ],
-  db: sqliteD1Adapter({ binding: DB }),
+  // Schema changes flow through generated migrations (payload migrate), never
+  // drizzle pushes: the D1 binding is the shared remote database, and pushes
+  // there have repeatedly wedged boot (rename prompts, redundant CREATE INDEX).
+  db: sqliteD1Adapter({ binding: DB, push: false }),
   secret,
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),

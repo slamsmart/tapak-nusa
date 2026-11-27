@@ -1208,11 +1208,6 @@ export default function NusaDashboard({
         .addTo(map)
       leaflet.control.zoom({ position: 'topright' }).addTo(map)
 
-      const washPane = map.createPane('nusa-wash')
-      washPane.style.zIndex = '550'
-      washPane.style.pointerEvents = 'none'
-      washPane.classList.add('map-wash')
-
       const markers = new Map<string, Marker>()
       pinProvinces.forEach((p, index) => {
         const appearance = pinAppearance(p, cleared, mapRegion)
@@ -1406,7 +1401,7 @@ export default function NusaDashboard({
       </div>
 
       {/* Mobile Header */}
-      <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-white/90 backdrop-blur-md border-b border-emerald-100 sticky top-0 z-30">
+      <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-slate-100 sticky top-0 z-30">
         <button
           type="button"
           onClick={onReturnHome}
@@ -1423,7 +1418,7 @@ export default function NusaDashboard({
           <button
             type="button"
             onClick={() => setMobileMenuOpen((v) => !v)}
-            className="p-2 rounded-xl bg-[#F0F7F4] text-[#0D5C46] hover:bg-emerald-100 transition"
+            className="p-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition"
             aria-label="Buka menu navigasi"
           >
             <LucideSvg name="menu" className="w-5 h-5" />
@@ -1565,7 +1560,7 @@ export default function NusaDashboard({
                 <p className="text-xs sm:text-sm font-semibold text-slate-500 mb-0.5">
                   Selamat datang kembali{demoUser ? `, ${demoUser.name}` : ''}!
                 </p>
-                <h1 className="text-xl sm:text-2xl lg:text-[28px] font-extrabold text-[#0D5C46] tracking-tight leading-tight">
+                <h1 className="text-xl sm:text-2xl lg:text-[28px] font-extrabold text-slate-900 tracking-tight leading-tight">
                   {provinces.length} provinsi, {provinces.length} pintu perjalanan.
                 </h1>
                 <p className="text-justify text-xs sm:text-sm text-slate-500 mt-1 max-w-xl leading-relaxed hidden sm:block">
@@ -1595,8 +1590,8 @@ export default function NusaDashboard({
 
             {/* XP & Level Badge */}
             <div className="flex items-center gap-2.5 bg-white px-3.5 py-2 rounded-2xl shadow-card border border-slate-100">
-              <div className="w-7 h-7 rounded-full bg-emerald-100/80 flex items-center justify-center">
-                <LucideSvg name="star" className="w-4 h-4 text-emerald-700" />
+              <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center">
+                <LucideSvg name="star" className="w-4 h-4 text-amber-600" />
               </div>
               <div className="leading-tight">
                 <span className="text-xs font-extrabold text-slate-800 block">{xp} XP</span>
@@ -1677,7 +1672,7 @@ export default function NusaDashboard({
                 {/* Stat 2: Topik Budaya */}
                 <Liquid.Item observe>
                   <div className="glass rounded-2xl px-4 py-3.5 bg-white border border-slate-100 flex items-center gap-3.5 transition-transform duration-300 hover:scale-[1.06]">
-                    <div className="w-10 h-10 rounded-full bg-[#C4EAD8] text-[#0D5C46] flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center shrink-0">
                       <LucideSvg name="book-open" className="w-5 h-5" />
                     </div>
                     <div className="leading-tight">
@@ -1756,7 +1751,7 @@ export default function NusaDashboard({
             <section className="rounded-3xl p-5 sm:p-6 bg-white shadow-card border border-slate-100">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
                 <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-50 text-[#0D5C46] flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="w-9 h-9 rounded-xl bg-rose-50 text-[#E11D48] flex items-center justify-center shrink-0 mt-0.5">
                     <LucideSvg name="map" className="w-5 h-5" />
                   </div>
                   <div>
@@ -1800,7 +1795,7 @@ export default function NusaDashboard({
               {/* Interactive OpenStreetMap container; province pins are Leaflet
                   markers bound to real coordinates, so they stay anchored while
                   panning and zooming. */}
-              <div className="map-card relative w-full h-[400px] sm:h-[460px] lg:h-[500px] xl:h-[520px] rounded-3xl overflow-hidden border border-emerald-100 shadow-inner">
+              <div className="map-card relative w-full h-[400px] sm:h-[460px] lg:h-[500px] xl:h-[520px] rounded-3xl overflow-hidden border border-slate-200 shadow-inner">
                 <div
                   ref={mapHostRef}
                   className="map-canvas absolute inset-0"

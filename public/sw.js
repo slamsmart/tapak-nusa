@@ -1,7 +1,7 @@
 // Service worker for Tapak Nusa.
 // Strategy: network-first for navigations with an offline fallback page,
 // stale-while-revalidate for static assets, never cache API/admin traffic.
-const CACHE = 'tapak-nusa-v3'
+const CACHE = 'tapak-nusa-v4'
 const OFFLINE_URL = '/offline.html'
 const PRECACHE = [OFFLINE_URL, '/icons/icon-192.png', '/favicon.svg']
 
