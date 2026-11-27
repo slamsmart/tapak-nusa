@@ -873,7 +873,7 @@ function NusaBrandPinLogo() {
 function SidebarPuraScene() {
   return (
     <div className="relative w-full flex-1 min-h-[260px] mt-auto pointer-events-none select-none overflow-hidden flex items-end">
-      <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#F9FCFA] via-[#F9FCFA]/80 to-transparent z-10" />
+      <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white via-white/80 to-transparent z-10" />
       <svg
         viewBox="0 0 260 400"
         className="w-full h-full object-cover object-bottom"
@@ -1474,8 +1474,8 @@ export default function NusaDashboard({
             aria-label="Menu Dashboard"
             blur={3}
             contrast={16}
-            fill="rgba(255, 255, 255, 0.6)"
-            shadow="0 10px 24px -18px rgba(13, 92, 70, 0.3)"
+            fill="rgba(255, 255, 255, 0.95)"
+            shadow="0 10px 24px -18px rgba(0, 0, 0, 0.08)"
           >
             {(
               [
@@ -1547,7 +1547,7 @@ export default function NusaDashboard({
       </aside>
 
       {/* MAIN CONTENT AREA */}
-      <main className="flex-1 min-w-0 p-4 sm:p-5 lg:p-6 lg:px-8 xl:px-10 max-w-[1560px] mx-auto w-full space-y-6">
+      <main className="flex-1 min-w-0 p-4 sm:p-5 lg:p-6 lg:px-8 xl:px-10 max-w-[1560px] mx-auto w-full space-y-6 bg-white">
         {/* TOP HEADER ROW: Left (Avatar & Greeting/Headline, sejajar dengan logo Tapak Nusa) & Right (Status Badges) */}
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 pt-1">
           {activeTab === 'beranda' ? (
@@ -1581,7 +1581,7 @@ export default function NusaDashboard({
           {/* Status Badges on Right */}
           <div className="flex flex-wrap items-center justify-end gap-2.5 sm:gap-3 shrink-0 self-start xl:self-center">
             {/* Streak Badge */}
-            <div className="flex items-center gap-2.5 bg-white/80 backdrop-blur-md px-3.5 py-2 rounded-2xl shadow-card border border-amber-100/80">
+            <div className="flex items-center gap-2.5 bg-white px-3.5 py-2 rounded-2xl shadow-card border border-amber-100">
               <div className="w-7 h-7 rounded-full bg-amber-50 flex items-center justify-center">
                 <LucideSvg name="flame" className="w-4 h-4 text-orange-500" filled />
               </div>
@@ -1594,7 +1594,7 @@ export default function NusaDashboard({
             </div>
 
             {/* XP & Level Badge */}
-            <div className="flex items-center gap-2.5 bg-white/80 backdrop-blur-md px-3.5 py-2 rounded-2xl shadow-card border border-emerald-100/80">
+            <div className="flex items-center gap-2.5 bg-white px-3.5 py-2 rounded-2xl shadow-card border border-slate-100">
               <div className="w-7 h-7 rounded-full bg-emerald-100/80 flex items-center justify-center">
                 <LucideSvg name="star" className="w-4 h-4 text-emerald-700" />
               </div>
@@ -1650,20 +1650,18 @@ export default function NusaDashboard({
           <div className="space-y-6">
             {/* HERO SECTION */}
             <section className="relative">
-              {/* 4 STAT CARDS + PRIMARY CTA ROW — one liquid-gooey group: the
-                  boxes share a single glass surface, so hovering a box bridges
-                  into its neighbour like liquid. */}
+              {/* 4 STAT CARDS + PRIMARY CTA ROW — one liquid-gooey group */}
               <Liquid
                 className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3.5 items-stretch"
                 blur={6}
                 contrast={16}
-                fill="rgba(255, 255, 255, 0.72)"
-                shadow="0 14px 34px -22px rgba(0, 0, 0, 0.08)"
+                fill="#ffffff"
+                shadow="0 14px 34px -22px rgba(0, 0, 0, 0.05)"
                 filterPadding={36}
               >
                 {/* Stat 1: Provinsi */}
                 <Liquid.Item observe>
-                  <div className="glass rounded-2xl px-4 py-3.5 bg-[#FFEAE6]/70 flex items-center gap-3.5 transition-transform duration-300 hover:scale-[1.06]">
+                  <div className="glass rounded-2xl px-4 py-3.5 bg-white border border-slate-100 flex items-center gap-3.5 transition-transform duration-300 hover:scale-[1.06]">
                     <div className="w-10 h-10 rounded-full bg-[#FFD2CB] text-[#E11D48] flex items-center justify-center shrink-0">
                       <LucideSvg name="map-pin" className="w-5 h-5" />
                     </div>
@@ -1678,7 +1676,7 @@ export default function NusaDashboard({
 
                 {/* Stat 2: Topik Budaya */}
                 <Liquid.Item observe>
-                  <div className="glass rounded-2xl px-4 py-3.5 bg-[#E2F5EC]/70 flex items-center gap-3.5 transition-transform duration-300 hover:scale-[1.06]">
+                  <div className="glass rounded-2xl px-4 py-3.5 bg-white border border-slate-100 flex items-center gap-3.5 transition-transform duration-300 hover:scale-[1.06]">
                     <div className="w-10 h-10 rounded-full bg-[#C4EAD8] text-[#0D5C46] flex items-center justify-center shrink-0">
                       <LucideSvg name="book-open" className="w-5 h-5" />
                     </div>
@@ -1695,7 +1693,7 @@ export default function NusaDashboard({
 
                 {/* Stat 3: Pencapaian */}
                 <Liquid.Item observe>
-                  <div className="glass rounded-2xl px-4 py-3.5 bg-[#EFE9FB]/70 flex items-center gap-3.5 transition-transform duration-300 hover:scale-[1.06]">
+                  <div className="glass rounded-2xl px-4 py-3.5 bg-white border border-slate-100 flex items-center gap-3.5 transition-transform duration-300 hover:scale-[1.06]">
                     <div className="w-10 h-10 rounded-full bg-[#DDD2F8] text-amber-600 flex items-center justify-center shrink-0">
                       <LucideSvg name="trophy" className="w-5 h-5" />
                     </div>
@@ -1712,7 +1710,7 @@ export default function NusaDashboard({
 
                 {/* Stat 4: Poin */}
                 <Liquid.Item observe>
-                  <div className="glass rounded-2xl px-4 py-3.5 bg-[#FFF3D6]/75 flex items-center gap-3.5 transition-transform duration-300 hover:scale-[1.06]">
+                  <div className="glass rounded-2xl px-4 py-3.5 bg-white border border-slate-100 flex items-center gap-3.5 transition-transform duration-300 hover:scale-[1.06]">
                     <div className="w-10 h-10 rounded-full bg-[#FDE29F] text-amber-600 flex items-center justify-center shrink-0">
                       <LucideSvg name="star" className="w-5 h-5" filled />
                     </div>
@@ -1755,7 +1753,7 @@ export default function NusaDashboard({
             </section>
 
             {/* INTERACTIVE MAP CARD: PETA EKSPLORASI INDONESIA */}
-            <section className="glass rounded-3xl p-5 sm:p-6 bg-white/60">
+            <section className="rounded-3xl p-5 sm:p-6 bg-white shadow-card border border-slate-100">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
                 <div className="flex items-start gap-3">
                   <div className="w-9 h-9 rounded-xl bg-emerald-50 text-[#0D5C46] flex items-center justify-center shrink-0 mt-0.5">
@@ -1840,7 +1838,7 @@ export default function NusaDashboard({
             {/* BOTTOM 2-COLUMN SECTION */}
             <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* LEFT COLUMN: TOP 5 PROVINSI PALING AKTIF */}
-              <div className="lg:col-span-5 glass rounded-3xl p-5 sm:p-6 bg-white/60 flex flex-col justify-between">
+              <div className="lg:col-span-5 rounded-3xl p-5 sm:p-6 bg-white shadow-card border border-slate-100 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between mb-5">
                     <div className="flex items-center gap-2.5">
@@ -1898,7 +1896,7 @@ export default function NusaDashboard({
               </div>
 
               {/* RIGHT COLUMN: PROGRES BELAJAR ANDA */}
-              <div className="lg:col-span-7 glass rounded-3xl p-5 sm:p-6 bg-white/60 flex flex-col justify-between">
+              <div className="lg:col-span-7 rounded-3xl p-5 sm:p-6 bg-white shadow-card border border-slate-100 flex flex-col justify-between">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center">
@@ -2050,7 +2048,7 @@ export default function NusaDashboard({
             </section>
 
             {/* BOTTOM ACHIEVEMENT BANNER */}
-            <section className="relative overflow-hidden rounded-3xl glass bg-[#FFF8E7]/80">
+            <section className="relative overflow-hidden rounded-3xl bg-[#FFF8E7] border border-amber-200/60 shadow-card">
               <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-5 sm:px-8 sm:py-5 relative z-10">
                 <div className="flex items-center gap-4 sm:gap-6">
                   {/* Left Scenic Temple Illustration */}
@@ -2112,7 +2110,7 @@ export default function NusaDashboard({
         {/* TAB 2: KOLEKSI BUDAYA */}
         {activeTab === 'koleksi' && (
           <div className="space-y-6">
-            <div className="glass rounded-3xl p-6 bg-white/60">
+            <div className="rounded-3xl p-6 bg-white shadow-card border border-slate-100">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                 <div>
                   <h2 className="text-xl font-extrabold text-[#0D5C46]">
@@ -2218,7 +2216,7 @@ export default function NusaDashboard({
         {/* TAB 3: PERINGKAT (LEADERBOARD) */}
         {activeTab === 'peringkat' && (
           <div className="space-y-6">
-            <div className="glass rounded-3xl p-6 bg-white/60">
+            <div className="rounded-3xl p-6 bg-white shadow-card border border-slate-100">
               <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
                 <div>
                   <h2 className="text-xl font-extrabold text-[#0D5C46]">
@@ -2265,7 +2263,7 @@ export default function NusaDashboard({
         {/* TAB 4: PROFIL & PENCAPAIAN */}
         {activeTab === 'profil' && (
           <div className="space-y-6">
-            <div className="glass rounded-3xl p-6 bg-white/60">
+            <div className="rounded-3xl p-6 bg-white shadow-card border border-slate-100">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-5 pb-6 border-b border-slate-100">
                 <div className="flex flex-col sm:flex-row items-center gap-5">
                   <div className="ring-4 ring-emerald-100 rounded-full">

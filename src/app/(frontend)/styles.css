@@ -4816,37 +4816,36 @@ body:has(.app-shell) .pwa-install {
   }
 }
 
-/* Redesigned Tapak Nusa Explorer Dashboard (Emerald Mint Theme).
+/* Redesigned Tapak Nusa Explorer Dashboard (Clean White Theme).
    Typeface matches the landing page (El Messiri) so both surfaces stay uniform. */
 .nusa-dashboard {
   font-family: 'El Messiri', Arial, sans-serif;
-  background: #ffffff;
+  background: #ffffff !important;
   color: #1e293b;
   overflow-x: hidden;
+}
+body:has(.nusa-dashboard) {
+  background: #ffffff !important;
 }
 body:has(.nusa-dashboard) .pwa-install {
   display: none;
 }
 .nusa-dashboard .shadow-soft {
   box-shadow:
-    0 10px 30px -5px rgba(13, 92, 70, 0.06),
-    0 4px 12px -2px rgba(13, 92, 70, 0.03);
+    0 10px 30px -5px rgba(0, 0, 0, 0.04),
+    0 4px 12px -2px rgba(0, 0, 0, 0.02);
 }
 .nusa-dashboard .shadow-card {
   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
 }
 .nusa-dashboard .shadow-float {
-  box-shadow: 0 12px 28px -4px rgba(13, 92, 70, 0.14);
+  box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.06);
 }
-/* Liquid glass surface: frosted backdrop over the dashboard's own tint, with a
-   hairline highlight so panels and boxes read as one glass material. Background
-   stays a Tailwind utility (solid tint); this rule owns the glass half. */
+/* Solid clean card surface: no green tint or green shadow */
 .nusa-dashboard .glass {
-  backdrop-filter: blur(18px) saturate(1.45);
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 18px 44px -26px rgba(13, 92, 70, 0.38);
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
 }
 .avatar-edit {
   position: absolute;
@@ -4882,7 +4881,7 @@ body:has(.nusa-dashboard) .pwa-install {
   fill: #eef5e6;
   stroke: #d6e5c8;
   stroke-width: 1.5;
-  filter: drop-shadow(0px 4px 6px rgba(13, 92, 70, 0.12));
+  filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.08));
   transition: all 0.3s ease;
 }
 .nusa-dashboard .island-land:hover {
