@@ -894,7 +894,7 @@ input:focus-visible {
 }
 .pin-anchor.pin-dim .pin {
   opacity: 0.22;
-  transform: translate(-50%, -50%) scale(0.85);
+  transform: translate(-15px, -15px) scale(0.85);
 }
 .pin > span > svg {
   width: 14px;
@@ -935,7 +935,9 @@ input:focus-visible {
 .pin {
   position: absolute;
   z-index: 5;
-  transform: translate(-50%, -50%);
+  /* The 30px teardrop's center sits exactly on the marker coordinate, so the
+     label hangs off to the side without shifting the pin off its province. */
+  transform: translate(-15px, -15px);
   border: 0;
   background: transparent;
   display: flex;
@@ -943,6 +945,9 @@ input:focus-visible {
   gap: 7px;
   color: #355a50;
   white-space: nowrap;
+}
+.pin.flip {
+  flex-direction: row-reverse;
 }
 .pin > span {
   width: 30px;
@@ -974,43 +979,6 @@ input:focus-visible {
 }
 .pin.open > span {
   animation: pulse 2s infinite;
-}
-.pin.dense {
-  z-index: 4;
-}
-.pin.dense > span {
-  width: 18px;
-  height: 18px;
-  border-width: 2px;
-  border-radius: 50%;
-  transform: none;
-  box-shadow:
-    0 2px 7px rgba(22, 54, 44, 0.32),
-    0 0 0 3px rgba(255, 255, 255, 0.32);
-}
-.pin.dense > b {
-  position: absolute;
-  left: 22px;
-  opacity: 0;
-  transform: translateX(-4px);
-  pointer-events: none;
-  transition:
-    opacity 0.16s ease,
-    transform 0.16s ease;
-}
-.pin.dense.flip > b {
-  left: auto;
-  right: 22px;
-  transform: translateX(4px);
-}
-.pin.dense:hover,
-.pin.dense:focus-visible {
-  z-index: 8;
-}
-.pin.dense:hover > b,
-.pin.dense:focus-visible > b {
-  opacity: 1;
-  transform: translateX(0);
 }
 .map-legend {
   position: absolute;
@@ -2124,9 +2092,6 @@ input:focus-visible {
   }
   .map-card {
     height: 400px;
-  }
-  .pin b {
-    display: none;
   }
   .province-list .number {
     display: none;
@@ -4315,7 +4280,7 @@ input:focus-visible {
   color: #8c3833;
   line-height: 1.4;
 }
-.google-auth-button {
+.auth-submit-button {
   min-height: 45px;
   border: 1px solid #d8dcd5;
   border-radius: 12px;
@@ -4327,27 +4292,63 @@ input:focus-visible {
   font-weight: 700;
   box-shadow: 0 6px 16px rgba(29, 68, 55, 0.07);
 }
-.google-auth-button:hover:not(:disabled) {
+.auth-submit-button:hover:not(:disabled) {
   border-color: #d94a51;
   background: #fff9f6;
 }
-.google-auth-button:disabled {
+.auth-submit-button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
-.google-mark {
+.auth-mark {
   width: 25px;
   height: 25px;
   flex: none;
   border: 1px solid #e3e5df;
   border-radius: 50%;
-  background: white;
-  color: #4285f4;
+  background: #0d5c46;
+  color: #fff;
   display: grid;
   place-items: center;
   font-size: 14px;
   font-weight: 700;
   box-shadow: 0 2px 6px rgba(34, 59, 50, 0.08);
+}
+.auth-notice {
+  margin: 0;
+  padding: 9px 11px;
+  border-left: 3px solid #0d5c46;
+  border-radius: 8px;
+  font-size: 11px;
+  color: #2e5a4c;
+  line-height: 1.4;
+}
+.otp-input {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 12px;
+  text-align: center;
+}
+.otp-actions {
+  margin: 14px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.otp-actions button {
+  border: 0;
+  background: transparent;
+  color: #a33b36;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 0;
+  min-height: 34px;
+  cursor: pointer;
+}
+.otp-actions button:disabled {
+  color: #8ba196;
+  cursor: not-allowed;
 }
 .cloudflare-note {
   margin: 14px 0 0;
@@ -4362,7 +4363,7 @@ input:focus-visible {
   padding: 12px 0 2px;
   text-align: center;
 }
-.auth-account > .google-mark {
+.auth-account > .auth-mark {
   width: 48px;
   height: 48px;
   font-size: 11px;
@@ -4546,10 +4547,6 @@ body:has(.app-shell) .pwa-install {
     transform: translate(-50%, -50%);
     border-radius: 50%;
   }
-  .pin.dense:before {
-    width: 34px;
-    height: 34px;
-  }
   .collection-grid button {
     min-height: 44px;
   }
@@ -4572,7 +4569,7 @@ body:has(.app-shell) .pwa-install {
   }
   .secondary,
   .primary,
-  .google-auth-button,
+  .auth-submit-button,
   .auth-tabs button {
     min-height: 44px;
   }
@@ -4591,15 +4588,6 @@ body:has(.app-shell) .pwa-install {
   }
   .pwa-install__hint {
     width: 158px;
-  }
-}
-
-/* Dense map pins are decorative on touch screens: they only reveal their label
-   on hover, and they sit on top of the five primary province markers. The
-   province list below the map is the reliable tap surface. */
-@media (hover: none) {
-  .pin.dense {
-    pointer-events: none;
   }
 }
 

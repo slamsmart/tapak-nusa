@@ -97,23 +97,17 @@ function regionLabelFor(region: 'barat' | 'tengah' | 'timur'): string {
 }
 type PinAppearance = {
   done: boolean
-  core: boolean
-  dense: boolean
   flip: boolean
   dim: boolean
 }
 
 function pinAppearance(
   p: Province,
-  index: number,
   cleared: Record<string, number>,
   mapRegion: MapRegion,
-  showExtraLabels: boolean,
 ): PinAppearance {
   return {
     done: cleared[p.id] !== undefined,
-    core: index < 5,
-    dense: index >= 5 && !showExtraLabels,
     flip: (p.lng ?? 0) > 129,
     dim: mapRegion !== 'all' && mapRegion !== regionForProvince(p.id),
   }
@@ -133,7 +127,6 @@ function buildPinIcon(
   const classes = [
     'pin',
     appearance.done ? 'done' : 'open',
-    appearance.dense ? 'dense' : '',
     appearance.flip ? 'flip' : '',
     'transition-all duration-300 cursor-pointer',
   ]
@@ -141,9 +134,7 @@ function buildPinIcon(
     .join(' ')
   const badge = appearance.done
     ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>'
-    : appearance.core
-      ? `<span>${order + 1}</span>`
-      : ''
+    : `<span>${order + 1}</span>`
   return leaflet.divIcon({
     className: `pin-anchor${appearance.dim ? ' pin-dim' : ''}`,
     html:
@@ -967,7 +958,6 @@ export default function NusaDashboard({
   const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [mapRegion, setMapRegion] = useState<MapRegion>('all')
-  const [showExtraLabels, setShowExtraLabels] = useState(false)
   const [timeframe, setTimeframe] = useState<'7days' | '30days'>('7days')
   const [selectedPointIdx, setSelectedPointIdx] = useState(4)
   const [koleksiSearch, setKoleksiSearch] = useState('')
@@ -1095,7 +1085,7 @@ export default function NusaDashboard({
 
       const markers = new Map<string, Marker>()
       pinProvinces.forEach((p, index) => {
-        const appearance = pinAppearance(p, index, cleared, mapRegion, showExtraLabels)
+        const appearance = pinAppearance(p, cleared, mapRegion)
         const marker = leaflet.marker([p.lat, p.lng], {
           icon: buildPinIcon(leaflet, p, appearance, index),
           title: `${p.name} (${p.island})`,
@@ -1130,18 +1120,18 @@ export default function NusaDashboard({
     // Mount once; the appearance sync below handles later prop changes.
   }, [])
 
-  // Keep marker appearances (done, core, dense, flip, dimmed) in sync with UI
-  // state without recreating the map.
+  // Keep marker appearances (done, flip, dimmed) in sync with UI state
+  // without recreating the map.
   useEffect(() => {
     const leaflet = leafletRef.current
     if (!leaflet || !mapReady) return
     pinProvinces.forEach((p, index) => {
       const marker = markersRef.current.get(p.id)
       if (!marker) return
-      const appearance = pinAppearance(p, index, cleared, mapRegion, showExtraLabels)
+      const appearance = pinAppearance(p, cleared, mapRegion)
       marker.setIcon(buildPinIcon(leaflet, p, appearance, index))
     })
-  }, [mapReady, pinProvinces, cleared, showExtraLabels, mapRegion])
+  }, [mapReady, pinProvinces, cleared, mapRegion])
 
   async function handleSelectOption(question: QuizQuestion, optionIdx: number) {
     if (checking || verdict) return
@@ -1682,25 +1672,6 @@ export default function NusaDashboard({
                       </button>
                     ))}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowExtraLabels((v) => !v)
-                      pushToast(
-                        !showExtraLabels
-                          ? 'Menampilkan pin wilayah tambahan'
-                          : 'Tampilan peta ringkas aktif',
-                      )
-                    }}
-                    title="Tampilkan/Sembunyikan Semua Label"
-                    className={`w-8 h-8 rounded-full border flex items-center justify-center transition cursor-pointer ${
-                      showExtraLabels
-                        ? 'border-[#E11D48] bg-rose-50 text-[#E11D48]'
-                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-                    }`}
-                  >
-                    <LucideSvg name="sliders-horizontal" className="w-3.5 h-3.5" />
-                  </button>
                 </div>
               </div>
 
