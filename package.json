@@ -13,7 +13,7 @@
     "generate:types": "payload generate:types",
     "generate:db-schema": "payload generate:db-schema",
     "payload": "payload",
-    "deploy": "node scripts/patch-opennext.mjs && opennextjs-cloudflare deploy",
+    "deploy:worker": "node scripts/with-build-phase.mjs opennextjs-cloudflare deploy",
     "cf:typegen": "wrangler types",
     "typecheck": "tsc --noEmit",
     "d1:migrate:local": "payload migrate",

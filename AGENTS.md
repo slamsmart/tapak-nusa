@@ -12,7 +12,7 @@ a Worker through OpenNext. Styling is Tailwind CSS v4.
 | `pnpm build` | `next build` with the Cloudflare build phase set |
 | `pnpm build:worker` | OpenNext bundle for Cloudflare |
 | `pnpm start` | `opennextjs-cloudflare preview` (local Worker preview) |
-| `pnpm deploy` | Build + deploy the Worker |
+| `pnpm run deploy:worker` | Build (with build-phase env) + deploy the Worker |
 | `pnpm typecheck` | `tsc --noEmit` |
 | `pnpm cf:typegen` | `wrangler types` → `worker-configuration.d.ts` (keep this file tracked: `src/lib/cloudflare.ts` and `tsconfig.json` depend on it) |
 | `pnpm generate:types` | Regenerate `src/payload-types.ts` |
