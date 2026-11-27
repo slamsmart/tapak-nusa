@@ -305,8 +305,8 @@ function AuthModal({
   const [otpOrigin, setOtpOrigin] = useState<'signin' | 'signup'>('signup')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [otpDigits, setOtpDigits] = useState<string[]>(['', '', '', '', '', ''])
   const [password, setPassword] = useState('')
-  const [code, setCode] = useState('')
   const [token, setToken] = useState('')
   const [scriptReady, setScriptReady] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -315,6 +315,7 @@ function AuthModal({
   const [resendIn, setResendIn] = useState(0)
   const turnstileRef = useRef<HTMLDivElement>(null)
   const widgetIdRef = useRef<string | null>(null)
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([])
   const siteKey = process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY
 
   useEffect(() => {
@@ -416,7 +417,7 @@ function AuthModal({
       if (!ok) throw new Error(result.message || 'Pendaftaran gagal. Coba lagi.')
       setOtpOrigin('signup')
       setMode('otp')
-      setCode('')
+      clearOtpDigits()
       setResendIn(60)
       setNotice(typeof result.message === 'string' ? result.message : '')
     } catch (authError) {
@@ -452,7 +453,7 @@ function AuthModal({
       if (result.status === 'otp_required') {
         setOtpOrigin('signin')
         setMode('otp')
-        setCode('')
+        clearOtpDigits()
         setResendIn(60)
         setNotice(typeof result.message === 'string' ? result.message : '')
         return
@@ -471,7 +472,7 @@ function AuthModal({
     event.preventDefault()
     setError('')
     setNotice('')
-    if (!/^\d{6}$/.test(code)) {
+    if (!/^\d{6}$/.test(otpCode)) {
       setError('Masukkan 6 digit kode verifikasi.')
       return
     }
@@ -481,7 +482,7 @@ function AuthModal({
       const normalizedEmail = email.trim().toLowerCase()
       const { ok, result } = await callAuthApi('/api/auth/verify', {
         email: normalizedEmail,
-        code,
+        code: otpCode,
       })
       if (!ok) throw new Error(result.message || 'Kode verifikasi salah.')
       const login = await callAuthApi('/api/auth/login', { email: normalizedEmail, password })
@@ -515,7 +516,7 @@ function AuthModal({
         }
         throw new Error(result.message || 'Gagal mengirim ulang kode.')
       }
-      setCode('')
+      clearOtpDigits()
       setResendIn(60)
       setNotice(
         typeof result.message === 'string' ? result.message : 'Kode verifikasi baru dikirim.',
@@ -525,6 +526,69 @@ function AuthModal({
     } finally {
       setBusy(false)
     }
+  }
+
+  const otpCode = otpDigits.join('')
+
+  function focusOtpBox(index: number) {
+    const box = otpRefs.current[index]
+    if (box) {
+      box.focus()
+      box.select()
+    }
+  }
+
+  function setOtpDigit(index: number, digit: string) {
+    const next = [...otpDigits]
+    next[index] = digit
+    setOtpDigits(next)
+  }
+
+  function clearOtpDigits() {
+    setOtpDigits(['', '', '', '', '', ''])
+  }
+
+  function handleOtpInput(index: number, event: React.ChangeEvent<HTMLInputElement>) {
+    const digits = event.target.value.replace(/\D/g, '')
+    const digit = digits.slice(-1)
+    setOtpDigit(index, digit)
+    if (digit && index < 5) focusOtpBox(index + 1)
+  }
+
+  function handleOtpKeyDown(index: number, event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Backspace' && !event.currentTarget.value && index > 0) {
+      focusOtpBox(index - 1)
+      return
+    }
+    if (event.key === 'Backspace' && event.currentTarget.value) {
+      setOtpDigit(index, '')
+      focusOtpBox(index)
+      return
+    }
+    if (event.key === 'ArrowLeft' && index > 0) {
+      event.preventDefault()
+      focusOtpBox(index - 1)
+      return
+    }
+    if (event.key === 'ArrowRight' && index < 5) {
+      event.preventDefault()
+      focusOtpBox(index + 1)
+    }
+  }
+
+  function handleOtpPaste(index: number, event: React.ClipboardEvent<HTMLInputElement>) {
+    const digits = event.clipboardData
+      .getData('text')
+      .replace(/\D/g, '')
+      .slice(0, 6 - index)
+    if (!digits) return
+    event.preventDefault()
+    const next = [...otpDigits]
+    for (let offset = 0; offset < digits.length; offset += 1) {
+      next[index + offset] = digits[offset] as string
+    }
+    setOtpDigits(next)
+    focusOtpBox(Math.min(index + digits.length, 5))
   }
 
   return (
@@ -564,18 +628,28 @@ function AuthModal({
               </p>
             )}
             <form onSubmit={submitOtp}>
-              <label>
-                <span>Kode verifikasi</span>
-                <input
-                  className="otp-input"
-                  value={code}
-                  onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="000000"
-                  maxLength={6}
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                />
-              </label>
+              <div className="otp-group" role="group" aria-label="Kode verifikasi 6 digit">
+                {otpDigits.map((digit, index) => (
+                  <input
+                    key={index}
+                    ref={(element) => {
+                      otpRefs.current[index] = element
+                    }}
+                    className={`otp-box${digit ? ' filled' : ''}`}
+                    value={digit}
+                    onChange={(event) => handleOtpInput(index, event)}
+                    onKeyDown={(event) => handleOtpKeyDown(index, event)}
+                    onPaste={(event) => handleOtpPaste(index, event)}
+                    onFocus={(event) => event.target.select()}
+                    aria-label={`Digit ${index + 1}`}
+                    placeholder="•"
+                    maxLength={index === 0 ? 6 : 1}
+                    inputMode="numeric"
+                    autoComplete={index === 0 ? 'one-time-code' : 'off'}
+                    type="text"
+                  />
+                ))}
+              </div>
               {error && (
                 <p className="auth-error" role="alert">
                   {error}
@@ -584,7 +658,7 @@ function AuthModal({
               <button
                 className="auth-submit-button"
                 type="submit"
-                disabled={busy || code.length < 6}
+                disabled={busy || otpDigits.some((digit) => !digit)}
               >
                 {busy ? 'Memeriksa...' : 'Verifikasi & masuk'}
               </button>
